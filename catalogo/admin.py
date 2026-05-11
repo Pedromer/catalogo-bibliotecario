@@ -1,18 +1,59 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import Libro, Autor, Categoria
 
+
 @admin.register(Autor)
-class AutorAdmin(admin.ModelAdmin):
+class AutorAdmin(ModelAdmin):
+    list_display  = ['nombre', 'nacionalidad']
     search_fields = ['nombre']
+    ordering      = ['nombre']
+
 
 @admin.register(Categoria)
-class CategoriaAdmin(admin.ModelAdmin):
-    pass
+class CategoriaAdmin(ModelAdmin):
+    list_display  = ['nombre']
+    ordering      = ['nombre']
+
 
 @admin.register(Libro)
-class LibroAdmin(admin.ModelAdmin):
-    list_display  = ['titulo', 'categoria', 'anio_publicacion',
-                     'cantidad_ejemplares', 'activo']
-    list_filter   = ['categoria', 'activo', 'anio_publicacion']
+class LibroAdmin(ModelAdmin):
+
+    # Columnas visibles en la lista de libros
+    list_display = [
+        'titulo', 'get_autores', 'categoria',
+        'anio_publicacion', 'cantidad_ejemplares', 'activo'
+    ]
+
+    # Filtros en la barra lateral derecha
+    list_filter = ['categoria', 'activo', 'anio_publicacion']
+
+    # Búsqueda por estos campos
     search_fields = ['titulo', 'autores__nombre', 'isbn']
-    filter_horizontal = ['autores']   # selector visual para autores múltiples
+
+    # Hacer editable el campo activo directo desde la lista
+    list_editable = ['activo']
+
+    # Organizar el formulario de carga en secciones
+    fieldsets = (
+        ('Información principal', {
+            'fields': ('titulo', 'autores', 'categoria', 'portada')
+        }),
+        ('Detalles de publicación', {
+            'fields': ('isbn', 'editorial', 'anio_publicacion', 'descripcion')
+        }),
+        ('Información física', {
+            'fields': ('ubicacion_fisica', 'cantidad_ejemplares')
+        }),
+        ('Estado', {
+            'fields': ('activo',)
+        }),
+    )
+
+    # Selector visual para autores (relación ManyToMany)
+    filter_horizontal = ['autores']
+
+    # Método auxiliar para mostrar autores en la lista
+    def get_autores(self, obj):
+        return ", ".join([a.nombre for a in obj.autores.all()])
+    get_autores.short_description = 'Autores'
