@@ -1,0 +1,104 @@
+{% extends "catalogo/base_publica.html" %}
+
+{% block titulo %}Catálogo — Biblioteca ESET-UNQ{% endblock %}
+
+{% block contenido %}
+
+<!-- Barra de búsqueda y filtros -->
+<div class="search-bar">
+    <form method="get" action="">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-7">
+                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
+                    BUSCAR
+                </label>
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ query }}"
+                    placeholder="Título, autor o ISBN..."
+                    class="form-control"
+                    style="border-color:var(--color-border);"
+                >
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
+                    CATEGORÍA
+                </label>
+                <select name="categoria" class="form-select" style="border-color:var(--color-border);">
+                    <option value="">Todas las categorías</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}"
+                        {% if categoria_id == cat.id|stringformat:"s" %}selected{% endif %}>
+                        {{ cat.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn w-100"
+                        style="background:var(--color-primary); color:white;">
+                    Buscar
+                </button>
+                {% if query or categoria_id %}
+                <a href="{% url 'catalogo:catalogo_publico' %}"
+                   class="btn btn-outline-secondary">✕</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Resultados -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <span style="font-size:.9rem; color:var(--color-muted);">
+        {% if query or categoria_id %}
+            {{ libros.count }} resultado{{ libros.count|pluralize }} encontrado{{ libros.count|pluralize }}
+        {% else %}
+            {{ libros.count }} libro{{ libros.count|pluralize }} en el catálogo
+        {% endif %}
+    </span>
+</div>
+
+{% if libros %}
+<div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+    {% for libro in libros %}
+    <div class="col">
+        <a href="{% url 'catalogo:detalle_libro' libro.pk %}"
+           class="text-decoration-none">
+            <div class="libro-card">
+                {% if libro.portada %}
+                    <img src="{{ libro.portada.url }}" alt="{{ libro.titulo }}">
+                {% else %}
+                    <div class="sin-portada" style="font-size: 100%;"> {{ libro.titulo }} 📖</div>
+                {% endif %}
+                <div class="libro-card-body">
+                    <div class="libro-titulo">{{ libro.titulo }}</div>
+                    <div class="libro-autores">
+                        {% for autor in libro.autores.all %}
+                            {{ autor.nombre }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if libro.categoria %}
+                    <div class="mt-2">
+                        <span class="badge-categoria">{{ libro.categoria.nombre }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="text-center py-5" style="color:var(--color-muted);">
+    <div style="font-size:3rem;">📭</div>
+    <p class="mt-2">No se encontraron libros con esos criterios.</p>
+    <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-primary btn-sm">
+        Ver todos los libros
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}

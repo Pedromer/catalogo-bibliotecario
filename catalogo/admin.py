@@ -37,7 +37,7 @@ class LibroAdmin(ModelAdmin):
     # Organizar el formulario de carga en secciones
     fieldsets = (
         ('Información principal', {
-            'fields': ('titulo', 'autores', 'categoria', 'portada')
+            'fields': ('titulo', 'autores', 'categoria', 'portada', 'contraportada')
         }),
         ('Detalles de publicación', {
             'fields': ('isbn', 'editorial', 'anio_publicacion', 'descripcion')

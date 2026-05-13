@@ -10,7 +10,7 @@ class LibroForm(forms.ModelForm):
             'titulo', 'autores', 'categoria', 'isbn',
             'editorial', 'anio_publicacion', 'descripcion',
             'ubicacion_fisica', 'cantidad_ejemplares',
-            'portada', 'activo'
+            'portada', 'contraportada', 'activo'
         ]
         widgets = {
             'titulo': forms.TextInput(attrs={
@@ -53,6 +53,11 @@ class LibroForm(forms.ModelForm):
             'portada': forms.ClearableFileInput(attrs={
                 'class': 'form-control'
             }),
+
+            'contraportada': forms.ClearableFileInput(attrs={
+                'class': 'form-control'
+            }),
+
             'activo': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
@@ -68,5 +73,6 @@ class LibroForm(forms.ModelForm):
             'ubicacion_fisica'   : 'Ubicación física',
             'cantidad_ejemplares': 'Cantidad de ejemplares',
             'portada'            : 'Imagen de portada',
+            'contraportada'      : 'Imagen de contraportada',
             'activo'             : 'Libro activo en el catálogo',
         }
