@@ -45,6 +45,7 @@ class Migration(migrations.Migration):
                 ('ubicacion_fisica', models.CharField(blank=True, help_text='Ej: Estante B - Fila 3', max_length=100)),
                 ('cantidad_ejemplares', models.PositiveIntegerField(default=1)),
                 ('portada', models.ImageField(blank=True, null=True, upload_to='portadas/')),
+                ('contraportada', models.ImageField(blank=True, null=True, upload_to='contraportadas/')),
                 ('fecha_ingreso', models.DateField(auto_now_add=True)),
                 ('activo', models.BooleanField(default=True)),
                 ('autores', models.ManyToManyField(to='catalogo.autor')),

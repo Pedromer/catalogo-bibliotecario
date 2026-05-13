@@ -5,7 +5,7 @@ from .models import Libro, Autor, Categoria
 
 @admin.register(Autor)
 class AutorAdmin(ModelAdmin):
-    list_display  = ['nombre', 'nacionalidad']
+    list_display  = ['nombre', 'pais']
     search_fields = ['nombre']
     ordering      = ['nombre']
 
