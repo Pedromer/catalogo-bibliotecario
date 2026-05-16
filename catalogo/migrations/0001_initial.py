@@ -34,12 +34,22 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='Editorial',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('nombre', models.CharField(max_length=100)),
+            ],
+            options={
+                'verbose_name_plural': 'Editoriales',
+            },
+        ),
+        migrations.CreateModel(
             name='Libro',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('titulo', models.CharField(max_length=300)),
                 ('isbn', models.CharField(blank=True, max_length=20, null=True, unique=True)),
-                ('editorial', models.CharField(blank=True, max_length=200)),
+                ('editoriales', models.ManyToManyField(blank=True, to='catalogo.editorial')),
                 ('anio_publicacion', models.PositiveIntegerField(blank=True, null=True)),
                 ('descripcion', models.TextField(blank=True)),
                 ('ubicacion_fisica', models.CharField(blank=True, max_length=100)),

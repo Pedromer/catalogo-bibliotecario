@@ -76,9 +76,13 @@
             {% endif %}
 
             <dl class="detalle-meta row">
-                {% if libro.editorial %}
-                <dt class="col-sm-4">Editorial</dt>
-                <dd class="col-sm-8">{{ libro.editorial }}</dd>
+                {% if libro.editoriales.all %}
+                <dt class="col-sm-4">Editorial/es disponibles</dt>
+                <dd class="col-sm-8">
+                    {% for editorial in libro.editoriales.all %}
+                        {{ editorial.nombre }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                </dd>
                 {% endif %}
 
                 {% if libro.anio_publicacion %}

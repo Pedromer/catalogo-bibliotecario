@@ -8,7 +8,7 @@ class LibroForm(forms.ModelForm):
         model  = Libro
         fields = [
             'titulo', 'autores', 'categoria', 'isbn',
-            'editorial', 'anio_publicacion', 'descripcion',
+            'editoriales', 'anio_publicacion', 'descripcion',
             'ubicacion_fisica', 'cantidad_ejemplares',
             'portada', 'contraportada', 'activo'
         ]
@@ -27,8 +27,8 @@ class LibroForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Ej: 978-3-16-148410-0'
             }),
-            'editorial': forms.TextInput(attrs={
-                'class': 'form-control',
+            'editoriales': forms.SelectMultiple(attrs={
+                'class': 'form-select',
                 'placeholder': 'Ej: Alfaguara'
             }),
             'anio_publicacion': forms.NumberInput(attrs={
@@ -67,7 +67,7 @@ class LibroForm(forms.ModelForm):
             'autores'            : 'Autor/es',
             'categoria'          : 'Categoría',
             'isbn'               : 'ISBN',
-            'editorial'          : 'Editorial',
+            'editoriales'        : 'Editoriales',
             'anio_publicacion'   : 'Año de publicación',
             'descripcion'        : 'Descripción',
             'ubicacion_fisica'   : 'Ubicación física',

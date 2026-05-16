@@ -1,6 +1,6 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
-from .models import Libro, Autor, Categoria
+from .models import Libro, Autor, Categoria, Editorial
 
 
 @admin.register(Autor)
@@ -14,6 +14,12 @@ class AutorAdmin(ModelAdmin):
 class CategoriaAdmin(ModelAdmin):
     list_display  = ['nombre']
     ordering      = ['nombre']
+
+
+@admin.register(Editorial)
+class EditorialAdmin(ModelAdmin):
+    list_display = ['nombre']
+    ordering = ['nombre']
 
 
 @admin.register(Libro)
@@ -40,7 +46,7 @@ class LibroAdmin(ModelAdmin):
             'fields': ('titulo', 'autores', 'categoria', 'portada', 'contraportada')
         }),
         ('Detalles de publicación', {
-            'fields': ('isbn', 'editorial', 'anio_publicacion', 'descripcion')
+            'fields': ('isbn', 'editoriales', 'anio_publicacion', 'descripcion')
         }),
         ('Información física', {
             'fields': ('ubicacion_fisica', 'cantidad_ejemplares')
@@ -50,8 +56,8 @@ class LibroAdmin(ModelAdmin):
         }),
     )
 
-    # Selector visual para autores (relación ManyToMany)
-    filter_horizontal = ['autores']
+    # Selector visual para autores y editoriales (relaciones ManyToMany)
+    filter_horizontal = ['autores', 'editoriales']
 
     # Método auxiliar para mostrar autores en la lista
     def get_autores(self, obj):

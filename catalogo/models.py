@@ -21,6 +21,16 @@ class Categoria(models.Model):
         verbose_name_plural = "Categorías"
 
 
+class Editorial(models.Model):
+    nombre = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        verbose_name_plural = "Editoriales"
+
+
 # catalogo/models.py
 
 class Libro(models.Model):
@@ -31,7 +41,7 @@ class Libro(models.Model):
                             null=True, blank=True
                           )
     isbn                = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    editorial           = models.CharField(max_length=200, blank=True)
+    editoriales           = models.ManyToManyField('Editorial', blank=True)
     anio_publicacion    = models.PositiveIntegerField(null=True, blank=True)
     descripcion         = models.TextField(blank=True)
     ubicacion_fisica    = models.CharField(max_length=100, blank=True)
