@@ -8,19 +8,22 @@
 <div class="search-bar">
     <form method="get" action="">
         <div class="row g-2 align-items-end">
-            <div class="col-md-7">
+            <!-- Buscador -->
+            <div class="col-md-4">
                 <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
                     BUSCAR
                 </label>
                 <input
                     type="text"
                     name="q"
-                    value="{{ query }}"
+                    value="{{ query|default_if_none:'' }}"
                     placeholder="Título, autor o ISBN..."
                     class="form-control"
                     style="border-color:var(--color-border);"
                 >
             </div>
+            
+            <!-- Categoría -->
             <div class="col-md-3">
                 <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
                     CATEGORÍA
@@ -28,21 +31,35 @@
                 <select name="categoria" class="form-select" style="border-color:var(--color-border);">
                     <option value="">Todas las categorías</option>
                     {% for cat in categorias %}
-                    <option value="{{ cat.id }}"
-                        {% if categoria_id == cat.id|stringformat:"s" %}selected{% endif %}>
+                    <option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:"s" %}selected{% endif %}>
                         {{ cat.nombre }}
                     </option>
                     {% endfor %}
                 </select>
             </div>
+
+            <!-- Filtro de Orden -->
+            <div class="col-md-3">
+                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
+                    ORDENAR POR
+                </label>
+                <select name="orden" class="form-select" style="border-color:var(--color-border);">
+                    <option value="">Predeterminado</option>
+                    <option value="titulo" {% if orden == 'titulo' %}selected{% endif %}>Título (A-Z)</option>
+                    <option value="-titulo" {% if orden == '-titulo' %}selected{% endif %}>Título (Z-A)</option>
+                    <option value="autor" {% if orden == 'autor' %}selected{% endif %}>Autor (A-Z)</option>
+                    <option value="-autor" {% if orden == '-autor' %}selected{% endif %}>Autor (Z-A)</option>
+                    <option value="anio_publicacion" {% if orden == 'anio_publicacion' %}selected{% endif %}>Año (asc)</option>
+                    <option value="-anio_publicacion" {% if orden == '-anio_publicacion' %}selected{% endif %}>Año (desc)</option>
+                </select>
+            </div>
+            <!-- Botones -->
             <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn w-100"
-                        style="background:var(--color-primary); color:white;">
+                <button type="submit" class="btn w-100" style="background:var(--color-primary); color:white;">
                     Buscar
                 </button>
-                {% if query or categoria_id %}
-                <a href="{% url 'catalogo:catalogo_publico' %}"
-                   class="btn btn-outline-secondary">✕</a>
+                {% if query or categoria_id or filtro %}
+                <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-secondary">✕</a>
                 {% endif %}
             </div>
         </div>

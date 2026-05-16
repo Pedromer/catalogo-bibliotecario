@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Min
 from .models import Libro, Categoria
 from .forms import LibroForm
 
@@ -16,13 +16,18 @@ from .forms import LibroForm
 def catalogo_publico(request):
     """
     Vista principal del catálogo. Accesible sin login.
-    Soporta búsqueda por texto y filtro por categoría.
+    Soporta búsqueda por texto, filtro por categoría y ordenamiento.
     """
-    libros     = Libro.objects.filter(activo=True).prefetch_related('autores')
+    # 1. QuerySets iniciales
+    libros = Libro.objects.filter(activo=True).prefetch_related('autores')
     categorias = Categoria.objects.all().order_by('nombre')
 
-    # Búsqueda por texto
+    # 2. Obtener todos los parámetros GET
     query = request.GET.get('q', '').strip()
+    categoria_id = request.GET.get('categoria', '')
+    orden = request.GET.get('orden', 'titulo')
+
+    # 3. Búsqueda por texto
     if query:
         libros = libros.filter(
             Q(titulo__icontains=query) |
@@ -30,18 +35,30 @@ def catalogo_publico(request):
             Q(isbn__icontains=query)
         ).distinct()
 
-    # Filtro por categoría
-    categoria_id = request.GET.get('categoria', '')
+    # 4. Filtro por categoría
     if categoria_id:
         libros = libros.filter(categoria__id=categoria_id)
 
+    # 5. Filtro de orden
+    if orden in ['titulo', '-titulo', 'anio_publicacion', '-anio_publicacion', 'autor', '-autor']:
+        if orden in ['autor', '-autor']:
+            # Anotamos el primer autor (alfabéticamente)
+            libros = libros.annotate(primer_autor=Min('autores__nombre'))
+            if orden == 'autor':
+                libros = libros.order_by('primer_autor')
+            else:
+                libros = libros.order_by('-primer_autor')
+        else:
+            libros = libros.order_by(orden)
+
+    # 6. Un único return con todo el contexto unificado
     return render(request, 'catalogo/catalogo_publico.html', {
         'libros'      : libros,
         'categorias'  : categorias,
         'query'       : query,
+        'orden'       : orden,
         'categoria_id': categoria_id,
     })
-
 
 def detalle_libro(request, pk):
     """

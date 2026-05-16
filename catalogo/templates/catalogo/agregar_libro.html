@@ -1,4 +1,4 @@
-{% extends "catalogo/base.html" %}
+ extends "catalogo/base.html" %}
 
 {% block titulo %}
     {% if libro %}Editar libro - Biblioteca Escolar{% else %}Agregar libro - Biblioteca Escolar{% endif %}
@@ -11,8 +11,7 @@
             Editar: {{ libro.titulo }}
         {% else %}
             Agregar nuevo libro
-        {% endif %}
-    </h1>
+        {% endif %}    </h1>
 </div>
 
 <div class="row justify-content-center">

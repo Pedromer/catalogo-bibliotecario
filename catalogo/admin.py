@@ -57,3 +57,5 @@ class LibroAdmin(ModelAdmin):
     def get_autores(self, obj):
         return ", ".join([a.nombre for a in obj.autores.all()])
     get_autores.short_description = 'Autores'
+
+
