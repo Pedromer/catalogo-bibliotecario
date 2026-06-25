@@ -1,0 +1,18 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    <li>
+        <a href="{{ urlname|add:'import' }}" class="button">Importar Excel</a>
+    </li>
+    <li>
+        <a href="{{ urlname|add:'export' }}" class="button">Exportar Excel</a>
+    </li>
+{% endblock %}
+
+{% block content_title %}
+    <div class="module">
+        <h1>{{ opts.verbose_name_plural|capfirst }}</h1>
+        <p class="help">Use los botones Importar y Exportar para gestionar libros en masa. La importación usa la plantilla de columnas: Titulo, Autores, Categoria, ISBN, Editorial, Publicacion, Descripcion, Cantidad, Ubicacion, Portada_URL, Contraportada_URL.</p>
+    </div>
+{% endblock %}

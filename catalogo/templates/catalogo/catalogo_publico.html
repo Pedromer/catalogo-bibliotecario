@@ -83,12 +83,19 @@
     <div class="col">
         <a href="{% url 'catalogo:detalle_libro' libro.pk %}"
            class="text-decoration-none">
-            <div class="libro-card">
-                {% if libro.portada %}
-                    <img src="{{ libro.portada.url }}" alt="{{ libro.titulo }}">
-                {% else %}
-                    <div class="sin-portada" style="font-size: 100%;"> {{ libro.titulo }} 📖</div>
-                {% endif %}
+            <div class="libro-card{% if libro.portada and libro.contraportada %} libro-carousel{% endif %}">
+                <div class="libro-card-media">
+                    {% if libro.portada %}
+                        <img class="carousel-image active" src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}">
+                        {% if libro.contraportada %}
+                            <img class="carousel-image" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
+                        {% endif %}
+                    {% elif libro.contraportada %}
+                        <img class="carousel-image active" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
+                    {% else %}
+                        <div class="sin-portada" style="font-size: 100%;"> {{ libro.titulo }} 📖</div>
+                    {% endif %}
+                </div>
                 <div class="libro-card-body">
                     <div class="libro-titulo">{{ libro.titulo }}</div>
                     <div class="libro-autores">
@@ -117,5 +124,43 @@
     </a>
 </div>
 {% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.libro-card.libro-carousel').forEach(function(card) {
+        var images = card.querySelectorAll('.carousel-image');
+        if (images.length < 2) return;
+
+        var current = 0;
+        var intervalId = null;
+
+        function showIndex(index) {
+            images.forEach(function(img, idx) {
+                img.classList.toggle('active', idx === index);
+            });
+        }
+
+        function startCarousel() {
+            if (intervalId !== null) return;
+            intervalId = setInterval(function() {
+                current = (current + 1) % images.length;
+                showIndex(current);
+            }, 2000); // Valor del intervalo en milisegundos
+        }
+
+        function stopCarousel() {
+            if (intervalId !== null) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            current = 0;
+            showIndex(current);
+        }
+
+        card.addEventListener('mouseenter', startCarousel);
+        card.addEventListener('mouseleave', stopCarousel);
+    });
+});
+</script>
 
 {% endblock %}

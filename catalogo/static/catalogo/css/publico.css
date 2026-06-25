@@ -48,11 +48,47 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,.12);
 }
 
-.libro-card img {
+.libro-card-media {
+    position: relative;
     width: 100%;
     height: 220px;
-    object-fit:contain;
+    background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
+}
+
+.libro-card-media img {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+    transition: opacity .4s ease;
+    opacity: 0;
+    z-index: 0;
+}
+
+.libro-card-media img.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.libro-card-media .sin-portada {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg);
+    color: var(--color-muted);
+    font-size: 2.5rem;
+}
+
+.libro-card-body {
+    padding: 1.25rem;
 }
 
 .libro-card-body {

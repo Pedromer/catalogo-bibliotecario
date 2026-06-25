@@ -1,6 +1,7 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 from .models import Libro, Autor, Categoria, Editorial
+from .admin_import_export import LibroImportExportAdmin
 
 
 @admin.register(Autor)
@@ -23,7 +24,7 @@ class EditorialAdmin(ModelAdmin):
 
 
 @admin.register(Libro)
-class LibroAdmin(ModelAdmin):
+class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
 
     # Columnas visibles en la lista de libros
     list_display = [

@@ -1,0 +1,370 @@
+import os
+import re
+import time
+from io import BytesIO
+
+import requests
+from django.conf import settings
+from django.core.files.base import ContentFile
+from django.db import models
+from import_export import fields, resources
+from import_export.widgets import ForeignKeyWidget, ManyToManyWidget
+from PIL import Image
+
+from .models import Autor, Categoria, Editorial, Libro
+
+MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024
+
+
+def _normalize_text(value):
+    if value is None:
+        return ''
+    text = str(value).strip()
+    text = re.sub(r'\s+', ' ', text)
+    return text
+
+
+def _slugify(value):
+    value = _normalize_text(value)
+    value = value.lower()
+    value = re.sub(r'[^a-z0-9]+', '_', value)
+    value = value.strip('_')
+    return value or 'imagen'
+
+
+def _download_image_content(url, filename_prefix, title=None):
+    if not url:
+        return None
+
+    if isinstance(url, str):
+        url = url.strip()
+
+    if not url:
+        return None
+
+    if not url.lower().startswith(('http://', 'https://')):
+        return None
+
+    try:
+        response = requests.get(url, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException:
+        return None
+
+    content_length = response.headers.get('Content-Length')
+    if content_length:
+        try:
+            if int(content_length) > MAX_IMAGE_SIZE_BYTES:
+                return None
+        except (ValueError, TypeError):
+            pass
+
+    content = response.content
+    if len(content) > MAX_IMAGE_SIZE_BYTES:
+        return None
+
+    try:
+        image = Image.open(BytesIO(content))
+        image.verify()
+    except Exception:
+        return None
+
+    suffix = os.path.splitext(url.split('?')[0])[1].lower()
+    if suffix not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']:
+        suffix = '.jpg'
+
+    safe_title = _slugify(title)
+    timestamp = int(time.time() * 1000)
+    filename = f"{filename_prefix}_{safe_title}_{timestamp}{suffix}"
+
+    return ContentFile(content, name=filename)
+
+def _convert_drive_url(url):
+    if not url:
+        return url
+    
+    url_str = str(url).strip()
+    if 'drive.google.com' not in url_str:
+        return url_str
+
+    # Busca el ID de la imagen en el formato estándar de Drive (/file/d/ID/...)
+    match = re.search(r'/d/([a-zA-Z0-9_-]+)', url_str)
+    if match:
+        return f"https://drive.google.com/uc?export=download&id={match.group(1)}"
+
+    # Busca el ID en el formato de enlace alternativo (?id=ID)
+    match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url_str)
+    if match:
+        return f"https://drive.google.com/uc?export=download&id={match.group(1)}"
+
+    return url_str
+
+class GetOrCreateForeignKeyWidget(ForeignKeyWidget):
+    def clean(self, value, row=None, **kwargs):
+        value = _normalize_text(value)
+        if not value:
+            return None
+        obj, _ = self.model.objects.get_or_create(
+            **{f"{self.field}__iexact": value},
+            defaults={self.field: value},
+        )
+        return obj
+
+
+class GetOrCreateManyToManyWidget(ManyToManyWidget):
+    def clean(self, value, row=None, **kwargs):
+        if not value:
+            return self.model.objects.none()
+        if isinstance(value, (float, int)):
+            ids = [int(value)]
+            return self.model.objects.filter(pk__in=ids)
+
+        values = [
+            _normalize_text(item)
+            for item in str(value).split(self.separator)
+            if _normalize_text(item)
+        ]
+        if not values:
+            return self.model.objects.none()
+
+        instances = []
+        seen = set()
+        for val in values:
+            if val in seen:
+                continue
+            seen.add(val)
+            obj, _ = self.model.objects.get_or_create(
+                **{f"{self.field}__iexact": val},
+                defaults={self.field: val},
+            )
+            instances.append(obj)
+
+        return self.model.objects.filter(pk__in=[obj.pk for obj in instances])
+
+
+class LibroResource(resources.ModelResource):
+    titulo = fields.Field(column_name='Titulo', attribute='titulo')
+    autores = fields.Field(
+        column_name='Autores',
+        attribute='autores',
+        widget=GetOrCreateManyToManyWidget(Autor, field='nombre'),
+    )
+    categoria = fields.Field(
+        column_name='Categoria',
+        attribute='categoria',
+        widget=GetOrCreateForeignKeyWidget(Categoria, field='nombre'),
+    )
+    isbn = fields.Field(column_name='ISBN', attribute='isbn')
+    editorial = fields.Field(
+        column_name='Editorial',
+        attribute='editoriales',
+        widget=GetOrCreateManyToManyWidget(Editorial, field='nombre'),
+    )
+    publicacion = fields.Field(column_name='Publicacion', attribute='anio_publicacion')
+    descripcion = fields.Field(column_name='Descripcion', attribute='descripcion')
+    cantidad = fields.Field(column_name='Cantidad', attribute='cantidad_ejemplares', default=1)
+    ubicacion = fields.Field(column_name='Ubicacion', attribute='ubicacion_fisica')
+    portada_url = fields.Field(column_name='Portada_URL', attribute='portada')
+    contraportada_url = fields.Field(column_name='Contraportada_URL', attribute='contraportada')
+
+    class Meta:
+        model = Libro
+        import_id_fields = []
+        fields = (
+            'titulo', 'autores', 'categoria', 'isbn', 'editorial',
+            'publicacion', 'descripcion', 'cantidad', 'ubicacion',
+            'portada_url', 'contraportada_url'
+        )
+        export_order = (
+            'titulo', 'autores', 'categoria', 'isbn', 'editorial',
+            'publicacion', 'descripcion', 'cantidad', 'ubicacion',
+            'portada_url', 'contraportada_url'
+        )
+        skip_unchanged = False
+        report_skipped = False
+
+    def before_import_row(self, row, **kwargs):
+        row['Titulo'] = _normalize_text(row.get('Titulo'))
+        row['Autores'] = _normalize_text(row.get('Autores'))
+        row['Categoria'] = _normalize_text(row.get('Categoria'))
+        row['Editorial'] = _normalize_text(row.get('Editorial'))
+        row['Descripcion'] = _normalize_text(row.get('Descripcion'))
+        row['Ubicacion'] = _normalize_text(row.get('Ubicacion'))
+
+        # --- INTERCEPTAMOS LAS URLS DE DRIVE ---
+        row['Portada_URL'] = _convert_drive_url(row.get('Portada_URL'))
+        row['Contraportada_URL'] = _convert_drive_url(row.get('Contraportada_URL'))
+        # --------------------------------------------
+
+        if not row['Titulo']:
+            raise ValueError('Titulo obligatorio')
+        if not row['Autores']:
+            raise ValueError('Autores obligatorio')
+
+    def skip_row(self, instance, original, row, import_validation_errors=None):
+        """Skip rows that are completely empty (all relevant columns blank)."""
+        cols = [
+            'Titulo', 'Autores', 'Categoria', 'ISBN', 'Editorial',
+            'Publicacion', 'Descripcion', 'Cantidad', 'Ubicacion',
+            'Portada_URL', 'Contraportada_URL'
+        ]
+        any_value = False
+        for c in cols:
+            v = row.get(c)
+            if v is None:
+                continue
+            if isinstance(v, str) and v.strip() == '':
+                continue
+            any_value = True
+            break
+
+        if not any_value:
+            return True
+        return super().skip_row(instance, original, row, import_validation_errors=import_validation_errors)
+
+    def import_field(self, field, instance, row, is_m2m=False, **kwargs):
+        """Handle `portada` and `contraportada` specially: store ContentFile temporarily
+        so files are written after the instance is saved (avoids missing PK / storage issues).
+        """
+        if not field.attribute or field.attribute not in ("portada", "contraportada"):
+            return super().import_field(field, instance, row, is_m2m, **kwargs)
+
+        col = field.column_name
+        # prefer resource clean_<col> if present (e.g. clean_portada_url)
+        cleaner = getattr(self, f"clean_{col.lower()}", None)
+        content = None
+        if callable(cleaner):
+            content = cleaner(row.get(col), row=row)
+        else:
+            try:
+                content = field.clean(row, **kwargs)
+            except Exception:
+                content = None
+
+        if content:
+            name = getattr(content, 'name', f"{field.attribute}_{int(time.time()*1000)}.jpg")
+            basename = os.path.basename(name)
+            setattr(instance, f"_tmp_{field.attribute}", (basename, content))
+        return
+
+    def after_save_instance(self, instance, row, **kwargs):
+        """Persist any temporary portada/contraportada files after instance saved.
+
+        Does nothing on dry_run.
+        """
+        if kwargs.get('dry_run'):
+            return
+
+        saved = False
+        for attr in ('portada', 'contraportada'):
+            tmp = getattr(instance, f"_tmp_{attr}", None)
+            if not tmp:
+                continue
+            name, content = tmp
+            try:
+                # save=False to defer DB save until both files processed
+                getattr(instance, attr).save(name, content, save=False)
+                saved = True
+            except Exception:
+                # don't raise here to keep import robust; errors surface elsewhere
+                pass
+            finally:
+                try:
+                    delattr(instance, f"_tmp_{attr}")
+                except Exception:
+                    pass
+
+        if saved:
+            instance.save()
+
+    def clean_publicacion(self, value, row=None):
+        if value in (None, ''):
+            return None
+        try:
+            year = int(float(value))
+        except (TypeError, ValueError):
+            raise ValueError('Publicacion no es un número válido')
+        if year < 1800 or year > 2100:
+            raise ValueError('Publicacion debe estar entre 1800 y 2100')
+        return year
+
+    def clean_cantidad(self, value, row=None):
+        if value in (None, ''):
+            return 1
+        try:
+            cantidad = int(float(value))
+        except (TypeError, ValueError):
+            raise ValueError('Cantidad no es un número válido')
+        if cantidad < 1:
+            raise ValueError('Cantidad debe ser al menos 1')
+        return cantidad
+
+    def clean_portada_url(self, value, row=None):
+        url = _normalize_text(value)
+        if not url:
+            return None
+        titulo = _normalize_text(row.get('Titulo')) if row else None
+        content = _download_image_content(url, 'portada', titulo)
+        if content is None:
+            return None
+        return content
+
+    def clean_contraportada_url(self, value, row=None):
+        url = _normalize_text(value)
+        if not url:
+            return None
+        titulo = _normalize_text(row.get('Titulo')) if row else None
+        content = _download_image_content(url, 'contraportada', titulo)
+        if content is None:
+            return None
+        return content
+
+    def dehydrate_autores(self, libro):
+        return ', '.join([autor.nombre for autor in libro.autores.all()])
+
+    def dehydrate_categoria(self, libro):
+        return libro.categoria.nombre if libro.categoria else ''
+
+    def dehydrate_editorial(self, libro):
+        return ', '.join([editorial.nombre for editorial in libro.editoriales.all()])
+
+    def dehydrate_publicacion(self, libro):
+        return libro.anio_publicacion or ''
+
+    def dehydrate_cantidad(self, libro):
+        return libro.cantidad_ejemplares
+
+    def dehydrate_ubicacion(self, libro):
+        return libro.ubicacion_fisica or ''
+
+    def _build_absolute_url(self, relative_url):
+        if not relative_url:
+            return ''
+        request = getattr(self, 'request', None)
+        if request is not None:
+            return request.build_absolute_uri(relative_url)
+        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
+        if site_url:
+            return f"{site_url}{relative_url}"
+        return relative_url
+
+    def dehydrate_portada_url(self, libro):
+        if not libro.portada:
+            return ''
+        return self._build_absolute_url(libro.portada.url)
+
+    def dehydrate_contraportada_url(self, libro):
+        if not libro.contraportada:
+            return ''
+        return self._build_absolute_url(libro.contraportada.url)
+
+    def clean_cantidad(self, value, row=None):
+        if value in (None, ''):
+            return 1
+        try:
+            cantidad = int(float(value))
+        except (TypeError, ValueError):
+            raise ValueError('Cantidad no es un número válido')
+        if cantidad < 1:
+            raise ValueError('Cantidad debe ser al menos 1')
+        return cantidad
