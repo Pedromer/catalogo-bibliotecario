@@ -3,8 +3,11 @@ from io import BytesIO
 import openpyxl
 import tablib
 from django.conf import settings
+
+from unfold.admin import ModelAdmin
 from import_export.admin import ImportExportModelAdmin
 from import_export.formats.base_formats import XLSX as BaseXLSX
+from unfold.contrib.import_export.forms import ExportForm, ImportForm
 
 from .resources import LibroResource
 
@@ -51,7 +54,11 @@ class XLSXPadded(BaseXLSX):
 
 
 class LibroImportExportAdmin(ImportExportModelAdmin):
+
+    
     resource_class = LibroResource
     formats = [XLSXPadded]
     from_encoding = 'utf-8-sig'
     import_export_change_list_template = 'admin/catalogo/libro/change_list.html'
+    import_form_class = ImportForm
+    export_form_class = ExportForm
