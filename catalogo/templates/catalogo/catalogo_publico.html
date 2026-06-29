@@ -1,5 +1,7 @@
 {% extends "catalogo/base_publica.html" %}
 
+{% load static %}
+
 {% block titulo %}Catálogo — Biblioteca ESET-UNQ{% endblock %}
 
 {% block contenido %}
@@ -75,15 +77,24 @@
             {{ libros.count }} libro{{ libros.count|pluralize }} en el catálogo
         {% endif %}
     </span>
+
+    <div class="btn-group" role="group" aria-label="Selector de vista">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-grid">
+            ⊞ Grilla
+        </button>
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-list">
+            ☰ Lista
+        </button>
+    </div>
 </div>
 
 {% if libros %}
-<div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+<div id="contenedor-libros" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
     {% for libro in libros %}
-    <div class="col">
-        <a href="{% url 'catalogo:detalle_libro' libro.pk %}"
-           class="text-decoration-none">
-            <div class="libro-card{% if libro.portada and libro.contraportada %} libro-carousel{% endif %}">
+    <div class="col item-libro">
+        <a href="{% url 'catalogo:detalle_libro' libro.pk %}" class="text-decoration-none text-dark">
+            <div class="libro-card h-100 d-flex flex-column {% if libro.portada and libro.contraportada %} libro-carousel{% endif %}">
+
                 <div class="libro-card-media">
                     {% if libro.portada %}
                         <img class="carousel-image active" src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}">
@@ -96,19 +107,40 @@
                         <div class="sin-portada" style="font-size: 100%;"> {{ libro.titulo }} 📖</div>
                     {% endif %}
                 </div>
-                <div class="libro-card-body">
-                    <div class="libro-titulo">{{ libro.titulo }}</div>
-                    <div class="libro-autores">
+
+                <div class="libro-card-body d-flex flex-column flex-grow-1">
+                    <div class="libro-titulo fw-bold">{{ libro.titulo }}</div>
+                    <div class="libro-autores text-muted" style="font-size: 0.9rem;">
                         {% for autor in libro.autores.all %}
                             {{ autor.nombre }}{% if not forloop.last %}, {% endif %}
                         {% endfor %}
                     </div>
                     {% if libro.categoria %}
                     <div class="mt-2">
-                        <span class="badge-categoria">{{ libro.categoria.nombre }}</span>
+                        <span class="badge-categoria badge bg-secondary">{{ libro.categoria.nombre }}</span>
                     </div>
                     {% endif %}
+
+                    <div class="info-extra d-none mt-3">
+                        {% if libro.anio_publicacion %}
+                            <p class="mb-1"><strong>Año:</strong> {{ libro.anio_publicacion }}</p>
+                        {% endif %}
+                        {% if libro.editoriales.all %}
+                            <p class="mb-1"><strong>Editorial:</strong>
+                                {% for ed in libro.editoriales.all %}{{ ed.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                            </p>
+                        {% endif %}
+                        {% if libro.ubicacion_fisica %}
+                            <p class="mb-1"><strong>Ubicación:</strong> {{ libro.ubicacion_fisica }}</p>
+                        {% endif %}
+                        {% if libro.descripcion %}
+                            <p class="mt-2 text-muted" style="font-size: 0.85rem;">
+                                {{ libro.descripcion|truncatewords:40 }}
+                            </p>
+                        {% endif %}
+                    </div>
                 </div>
+
             </div>
         </a>
     </div>
@@ -125,42 +157,8 @@
 </div>
 {% endif %}
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.libro-card.libro-carousel').forEach(function(card) {
-        var images = card.querySelectorAll('.carousel-image');
-        if (images.length < 2) return;
+<script src="{% static 'catalogo/js/carrusel_portada.js' %}"></script>
 
-        var current = 0;
-        var intervalId = null;
-
-        function showIndex(index) {
-            images.forEach(function(img, idx) {
-                img.classList.toggle('active', idx === index);
-            });
-        }
-
-        function startCarousel() {
-            if (intervalId !== null) return;
-            intervalId = setInterval(function() {
-                current = (current + 1) % images.length;
-                showIndex(current);
-            }, 2000); // Valor del intervalo en milisegundos
-        }
-
-        function stopCarousel() {
-            if (intervalId !== null) {
-                clearInterval(intervalId);
-                intervalId = null;
-            }
-            current = 0;
-            showIndex(current);
-        }
-
-        card.addEventListener('mouseenter', startCarousel);
-        card.addEventListener('mouseleave', stopCarousel);
-    });
-});
-</script>
+<script src="{% static 'catalogo/js/modo_vista.js' %}"></script>
 
 {% endblock %}
