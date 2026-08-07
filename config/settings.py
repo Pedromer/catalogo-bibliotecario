@@ -10,11 +10,9 @@ import os
 from decouple import config
 
 import cloudinary
-import cloudinary.uploader
-from cloudinary.utils import cloudinary_url
+from decouple import config
 
-# Configuration       
-
+# 
 cloudinary.config(
     cloud_name=config('CLOUDINARY_CLOUD_NAME', default=''),
     api_key=config('CLOUDINARY_API_KEY', default=''),
