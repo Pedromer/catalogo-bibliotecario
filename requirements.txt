@@ -11,4 +11,4 @@ django-cors-headers==4.4.0
 requests==2.31.0
 django-unfold==0.93.0
 django-import-export==4.4.1
-openpyxl==3.11.0
+openpyxl==3.12.0
