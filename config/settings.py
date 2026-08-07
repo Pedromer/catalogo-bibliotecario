@@ -26,6 +26,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # Permitir localhost, tu dominio principal de Vercel y cualquier subdominio *.vercel.app
 ALLOWED_HOSTS = [
     'catalogo-bibliotecario.vercel.app',
+    'catalogo-bibliotecario-lsdscbd09-pedromers-projects.vercel.app',
     '.vercel.app',
     '127.0.0.1',
     'localhost',
