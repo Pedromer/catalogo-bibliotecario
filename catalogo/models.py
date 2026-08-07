@@ -30,12 +30,12 @@ class Editorial(models.Model):
     class Meta:
         verbose_name_plural = "Editoriales"
 
+
 # catalogo/models.py
-from cloudinary.models import CloudinaryField
 
 class Libro(models.Model):
-    portada = CloudinaryField('Portada', null=True, blank=True)
-    contraportada = CloudinaryField('Contraportada', null=True, blank=True)
+    portada = models.URLField(max_length=500, null=True, blank=True)
+    contraportada = models.URLField(max_length=500, null=True, blank=True)
     titulo              = models.CharField(max_length=300)
     autores             = models.ManyToManyField(Autor)
     categoria           = models.ForeignKey(
