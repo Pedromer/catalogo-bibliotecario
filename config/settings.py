@@ -145,3 +145,4 @@ if not DEBUG:
     SECURE_CONTENT_SECURITY_POLICY = {
         'default-src': ("'self'",),
     }
+  
