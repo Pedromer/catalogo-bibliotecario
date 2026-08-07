@@ -30,10 +30,12 @@ class Editorial(models.Model):
     class Meta:
         verbose_name_plural = "Editoriales"
 
-
 # catalogo/models.py
+from cloudinary.models import CloudinaryField
 
 class Libro(models.Model):
+    portada = CloudinaryField('Portada', null=True, blank=True)
+    contraportada = CloudinaryField('Contraportada', null=True, blank=True)
     titulo              = models.CharField(max_length=300)
     autores             = models.ManyToManyField(Autor)
     categoria           = models.ForeignKey(
@@ -41,13 +43,11 @@ class Libro(models.Model):
                             null=True, blank=True
                           )
     isbn                = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    editoriales           = models.ManyToManyField('Editorial', blank=True)
+    editoriales         = models.ManyToManyField('Editorial', blank=True)
     anio_publicacion    = models.PositiveIntegerField(null=True, blank=True)
     descripcion         = models.TextField(blank=True)
     ubicacion_fisica    = models.CharField(max_length=100, blank=True)
     cantidad_ejemplares = models.PositiveIntegerField(default=1)
-    portada             = models.ImageField(upload_to='portadas/', blank=True, null=True)
-    contraportada       = models.ImageField(upload_to='contraportadas/', blank=True, null=True)  # ← NUEVO
     fecha_ingreso       = models.DateField(auto_now_add=True)
     activo              = models.BooleanField(default=True)
 
