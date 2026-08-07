@@ -27,6 +27,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = [
     'catalogo-bibliotecario.vercel.app',
     'catalogo-bibliotecario-lsdscbd09-pedromers-projects.vercel.app',
+    '*.vercel.app',  
     '.vercel.app',
     '127.0.0.1',
     'localhost',
