@@ -14,11 +14,11 @@ import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
 
 # Configuration       
-cloudinary.config( 
-    cloud_name = "k67j66gl", 
-    api_key = "567278174694371", 
-    api_secret = "2kH3L0J70NIrFLm7Xhv2mGGRVFc", # Click 'View API Keys' above to copy your API secret
-    secure=True
+
+cloudinary.config(
+    cloud_name=config('CLOUDINARY_CLOUD_NAME', default=''),
+    api_key=config('CLOUDINARY_API_KEY', default=''),
+    api_secret=config('CLOUDINARY_API_SECRET', default=''),
 )
 
 # Upload an image
