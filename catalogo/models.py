@@ -34,8 +34,8 @@ class Editorial(models.Model):
 # catalogo/models.py
 
 class Libro(models.Model):
-    portada = models.URLField(max_length=500, null=True, blank=True)
-    contraportada = models.URLField(max_length=500, null=True, blank=True)
+    portada = models.FileField(upload_to='portadas/', null=True, blank=True)
+    contraportada = models.FileField(upload_to='contraportadas/', null=True, blank=True)
     titulo              = models.CharField(max_length=300)
     autores             = models.ManyToManyField(Autor)
     categoria           = models.ForeignKey(
