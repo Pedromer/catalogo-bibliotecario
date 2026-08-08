@@ -30,13 +30,79 @@ body {
     z-index: 1030;
 }
 
-.search-bar {
+.catalogo-layout {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+}
+
+.catalogo-main-content {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.sidebar-filtros {
+    width: 280px;
+    flex-shrink: 0;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.5rem;
     box-shadow: var(--shadow);
+    padding: 1rem;
+    position: sticky;
+    top: 90px;
+}
+
+.sidebar-filtros-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.sidebar-filtros-header h5 {
+    color: var(--color-text);
+}
+
+.sidebar-filtros-header p {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+}
+
+.btn-close-sidebar {
+    border: none;
+    background: transparent;
+    color: var(--color-muted);
+    font-size: 1rem;
+}
+
+.sidebar-filtros-form .form-control,
+.sidebar-filtros-form .form-select {
+    border-color: var(--color-border);
+}
+
+@media (max-width: 991.98px) {
+    .catalogo-layout {
+        display: block;
+    }
+
+    .sidebar-filtros {
+        position: fixed;
+        top: 70px;
+        right: -320px;
+        bottom: 0;
+        width: 300px;
+        max-width: 90vw;
+        border-radius: 0;
+        border-left: 1px solid var(--color-border);
+        z-index: 1040;
+        transition: right 0.25s ease;
+        overflow-y: auto;
+    }
+
+    .sidebar-filtros.open {
+        right: 0;
+    }
 }
 
 .libro-card {
@@ -108,6 +174,7 @@ body {
     margin-bottom: .25rem;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }

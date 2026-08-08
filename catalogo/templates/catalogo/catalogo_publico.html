@@ -6,31 +6,31 @@
 
 {% block contenido %}
 
-<!-- Barra de búsqueda y filtros -->
-<div class="search-bar">
-    <form method="get" action="">
-        <div class="row g-2 align-items-end">
-            <!-- Buscador -->
-            <div class="col-md-4">
-                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
-                    BUSCAR
-                </label>
+<div class="catalogo-layout">
+    <aside id="sidebar-filtros" class="sidebar-filtros" aria-label="Panel de filtros">
+        <div class="sidebar-filtros-header">
+            <div>
+                <h5 class="mb-1">Filtros</h5>
+                <p class="mb-0">Busca y ordena tu catálogo</p>
+            </div>
+            <button type="button" class="btn-close-sidebar" id="close-filtros" aria-label="Cerrar filtros">✕</button>
+        </div>
+
+        <form method="get" action="" class="sidebar-filtros-form">
+            <div class="mb-3">
+                <label class="form-label fw-semibold mb-1">BUSCAR</label>
                 <input
                     type="text"
                     name="q"
                     value="{{ query|default_if_none:'' }}"
                     placeholder="Título, autor o ISBN..."
                     class="form-control"
-                    style="border-color:var(--color-border);"
                 >
             </div>
-            
-            <!-- Categoría -->
-            <div class="col-md-3">
-                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
-                    CATEGORÍA
-                </label>
-                <select name="categoria" class="form-select" style="border-color:var(--color-border);">
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold mb-1">CATEGORÍA</label>
+                <select name="categoria" class="form-select">
                     <option value="">Todas las categorías</option>
                     {% for cat in categorias %}
                     <option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:"s" %}selected{% endif %}>
@@ -40,12 +40,9 @@
                 </select>
             </div>
 
-            <!-- Filtro de Orden -->
-            <div class="col-md-3">
-                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
-                    ORDENAR POR
-                </label>
-                <select name="orden" class="form-select" style="border-color:var(--color-border);">
+            <div class="mb-3">
+                <label class="form-label fw-semibold mb-1">ORDENAR POR</label>
+                <select name="orden" class="form-select">
                     <option value="">Predeterminado</option>
                     <option value="titulo" {% if orden == 'titulo' %}selected{% endif %}>Título (A-Z)</option>
                     <option value="-titulo" {% if orden == '-titulo' %}selected{% endif %}>Título (Z-A)</option>
@@ -55,18 +52,17 @@
                     <option value="-anio_publicacion" {% if orden == '-anio_publicacion' %}selected{% endif %}>Año (desc)</option>
                 </select>
             </div>
-            <!-- Botones -->
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn w-100" style="background:var(--color-primary); color:white;">
-                    Buscar
-                </button>
-                {% if query or categoria_id or filtro %}
-                <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-secondary">✕</a>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                {% if query or categoria_id or orden %}
+                <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-secondary">Limpiar</a>
                 {% endif %}
             </div>
-        </div>
-    </form>
-</div>
+        </form>
+    </aside>
+
+    <div class="catalogo-main-content">
 
 <!-- Resultados -->
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -156,9 +152,31 @@
     </a>
 </div>
 {% endif %}
+    </div>
+</div>
 
 <script src="{% static 'catalogo/js/carrusel_portada.js' %}"></script>
-
 <script src="{% static 'catalogo/js/modo_vista.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('toggle-filtros');
+        const sidebar = document.getElementById('sidebar-filtros');
+        const closeBtn = document.getElementById('close-filtros');
+
+        if (!toggle || !sidebar) return;
+
+        toggle.addEventListener('click', function () {
+            const isOpen = sidebar.classList.toggle('open');
+            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                sidebar.classList.remove('open');
+                toggle.setAttribute('aria-expanded', 'false');
+            });
+        }
+    });
+</script>
 
 {% endblock %}
