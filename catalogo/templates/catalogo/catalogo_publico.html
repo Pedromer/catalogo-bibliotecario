@@ -165,17 +165,27 @@
 
         if (!toggle || !sidebar) return;
 
-        toggle.addEventListener('click', function () {
-            const isOpen = sidebar.classList.toggle('open');
+        const setOpenState = function (isOpen) {
+            sidebar.classList.toggle('open', isOpen);
             toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        };
+
+        toggle.addEventListener('click', function () {
+            const isOpen = sidebar.classList.contains('open');
+            setOpenState(!isOpen);
         });
 
         if (closeBtn) {
             closeBtn.addEventListener('click', function () {
-                sidebar.classList.remove('open');
-                toggle.setAttribute('aria-expanded', 'false');
+                setOpenState(false);
             });
         }
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth >= 992) {
+                setOpenState(false);
+            }
+        });
     });
 </script>
 
