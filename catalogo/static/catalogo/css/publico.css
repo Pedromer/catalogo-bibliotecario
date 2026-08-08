@@ -16,12 +16,18 @@ body {
     background: var(--color-bg);
     color: var(--color-text);
     font-family: 'Inter', system-ui, sans-serif;
+    padding-top: 70px;
 }
 
 .navbar-publica {
     background: var(--color-primary);
     padding: 0.75rem 0;
     box-shadow: var(--shadow);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
 }
 
 .search-bar {
