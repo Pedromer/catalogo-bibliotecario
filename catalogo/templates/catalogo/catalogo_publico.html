@@ -166,16 +166,28 @@
 
         if (!toggle || !sidebar) return;
 
+        const isDesktop = () => window.innerWidth >= 992;
+
         const setSidebarState = (isOpen) => {
-            sidebar.classList.toggle('open', isOpen);
-            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            if (layout) {
-                layout.classList.toggle('sidebar-visible', isOpen);
+            if (isDesktop()) {
+                if (layout) {
+                    layout.classList.toggle('sidebar-collapsed', !isOpen);
+                }
+                sidebar.classList.remove('open');
+            } else {
+                if (layout) {
+                    layout.classList.remove('sidebar-collapsed');
+                }
+                sidebar.classList.toggle('open', isOpen);
             }
+
+            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
         };
 
         toggle.addEventListener('click', function () {
-            const shouldOpen = !sidebar.classList.contains('open');
+            const shouldOpen = isDesktop()
+                ? layout.classList.contains('sidebar-collapsed')
+                : !sidebar.classList.contains('open');
             setSidebarState(shouldOpen);
         });
 
@@ -186,9 +198,7 @@
         }
 
         window.addEventListener('resize', function () {
-            if (window.innerWidth >= 992) {
-                setSidebarState(false);
-            }
+            setSidebarState(isDesktop() ? !layout?.classList.contains('sidebar-collapsed') : sidebar.classList.contains('open'));
         });
     });
 </script>
