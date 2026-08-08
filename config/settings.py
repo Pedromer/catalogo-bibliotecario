@@ -34,14 +34,29 @@ SECRET_KEY = config(
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Permitir localhost, tu dominio principal de Vercel y cualquier subdominio *.vercel.app
+import os
+
 ALLOWED_HOSTS = [
     'catalogo-bibliotecario.vercel.app',
-    'catalogo-bibliotecario-lsdscbd09-pedromers-projects.vercel.app',
-    '*.vercel.app',  
-    '.vercel.app',
+    'eset-catalogo.vercel.app',       # Dominio
+    'esetunq-catalogo.vercel.app',    # Dominio
     '127.0.0.1',
     'localhost',
 ]
+
+# Permite dinámicamente la URL exacta asignada al despliegue
+VERCEL_URL = os.environ.get('VERCEL_URL')
+if VERCEL_URL:
+    ALLOWED_HOSTS.append(VERCEL_URL)
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://catalogo-bibliotecario.vercel.app',
+    'https://eset-catalogo.vercel.app',
+    'https://esetunq-catalogo.vercel.app',
+]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 # Application definition
 INSTALLED_APPS = [
