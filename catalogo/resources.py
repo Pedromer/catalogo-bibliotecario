@@ -5,6 +5,7 @@ from io import BytesIO
 
 import requests
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.db import models
 from import_export import fields, resources
@@ -183,6 +184,145 @@ class LibroResource(resources.ModelResource):
         skip_unchanged = False
         report_skipped = False
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._duplicate_updated = 0
+        self._duplicate_skipped = 0
+        self._current_row_is_duplicate = False
+        self._current_row_has_new_data = False
+
+    def _get_author_names(self, row):
+        values = row.get('Autores')
+        if values is None:
+            return []
+        if isinstance(values, (list, tuple, set)):
+            items = values
+        else:
+            items = re.split(r'[,;|\n]+', str(values))
+
+        names = []
+        for item in items:
+            name = _normalize_text(item)
+            if name:
+                names.append(name)
+        return names
+
+    def _find_existing_duplicate(self, row):
+        titulo = _normalize_text(row.get('Titulo'))
+        autores = self._get_author_names(row)
+
+        if not titulo or not autores:
+            return None
+
+        queryset = Libro.objects.filter(titulo__iexact=titulo)
+        for autor in autores:
+            queryset = queryset.filter(autores__nombre__iexact=autor)
+
+        return queryset.distinct().first()
+
+    def get_or_init_instance(self, instance_loader, row):
+        duplicate = self._find_existing_duplicate(row)
+        if duplicate is not None:
+            self._current_row_is_duplicate = True
+            self._current_row_has_new_data = False
+            return duplicate, False
+
+        self._current_row_is_duplicate = False
+        self._current_row_has_new_data = False
+        return self.init_instance(row), True
+
+    def _has_value(self, value):
+        if value is None:
+            return False
+        if isinstance(value, str):
+            return value.strip() != ''
+        return True
+
+    def _merge_duplicate_data(self, instance, row, **kwargs):
+        changed = False
+
+        isbn_value = _normalize_text(row.get('ISBN'))
+        if self._has_value(isbn_value) and not instance.isbn:
+            instance.isbn = isbn_value
+            changed = True
+
+        if instance.categoria_id is None:
+            categoria_value = self.fields['categoria'].clean(row, **kwargs)
+            if categoria_value is not None:
+                instance.categoria = categoria_value
+                changed = True
+
+        autores_value = self.fields['autores'].clean(row, **kwargs)
+        if autores_value:
+            for autor in autores_value:
+                if not instance.autores.filter(pk=autor.pk).exists():
+                    instance.autores.add(autor)
+                    changed = True
+
+        editorial_value = self.fields['editorial'].clean(row, **kwargs)
+        if editorial_value:
+            for editorial in editorial_value:
+                if not instance.editoriales.filter(pk=editorial.pk).exists():
+                    instance.editoriales.add(editorial)
+                    changed = True
+
+        if not instance.anio_publicacion:
+            publicacion_value = self.fields['publicacion'].clean(row, **kwargs)
+            if publicacion_value is not None:
+                instance.anio_publicacion = publicacion_value
+                changed = True
+
+        descripcion_value = _normalize_text(row.get('Descripcion'))
+        if self._has_value(descripcion_value) and not instance.descripcion:
+            instance.descripcion = descripcion_value
+            changed = True
+
+        cantidad_value = row.get('Cantidad')
+        if cantidad_value not in (None, ''):
+            try:
+                cantidad_num = int(float(cantidad_value))
+            except (TypeError, ValueError):
+                cantidad_num = None
+            if cantidad_num is not None and cantidad_num > 0 and instance.cantidad_ejemplares <= 1:
+                instance.cantidad_ejemplares = cantidad_num
+                changed = True
+
+        ubicacion_value = _normalize_text(row.get('Ubicacion'))
+        if self._has_value(ubicacion_value) and not instance.ubicacion_fisica:
+            instance.ubicacion_fisica = ubicacion_value
+            changed = True
+
+        return changed
+
+    def import_instance(self, instance, row, **kwargs):
+        if self._current_row_is_duplicate:
+            self._current_row_has_new_data = self._merge_duplicate_data(instance, row, **kwargs)
+            return
+
+        return super().import_instance(instance, row, **kwargs)
+
+    def skip_row(self, instance, original, row, import_validation_errors=None):
+        if self._current_row_is_duplicate and not self._current_row_has_new_data:
+            return True
+        return super().skip_row(instance, original, row, import_validation_errors=import_validation_errors)
+
+    def after_import_row(self, row, row_result, **kwargs):
+        if self._current_row_is_duplicate:
+            if self._current_row_has_new_data:
+                self._duplicate_updated += 1
+            else:
+                self._duplicate_skipped += 1
+        super().after_import_row(row, row_result, **kwargs)
+
+    def after_import(self, dataset, result, **kwargs):
+        result.totals['duplicate_updated'] = self._duplicate_updated
+        result.totals['duplicate_skipped'] = self._duplicate_skipped
+        result.duplicate_report = {
+            'updated': self._duplicate_updated,
+            'skipped': self._duplicate_skipped,
+        }
+        return super().after_import(dataset, result, **kwargs)
+
     def before_import_row(self, row, **kwargs):
         row['Titulo'] = _normalize_text(row.get('Titulo'))
         row['Autores'] = _normalize_text(row.get('Autores'))
@@ -220,6 +360,10 @@ class LibroResource(resources.ModelResource):
 
         if not any_value:
             return True
+
+        if self._current_row_is_duplicate and not self._current_row_has_new_data:
+            return True
+
         return super().skip_row(instance, original, row, import_validation_errors=import_validation_errors)
 
     def import_field(self, field, instance, row, is_m2m=False, **kwargs):
