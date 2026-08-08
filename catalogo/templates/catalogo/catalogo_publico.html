@@ -162,28 +162,32 @@
         const toggle = document.getElementById('toggle-filtros');
         const sidebar = document.getElementById('sidebar-filtros');
         const closeBtn = document.getElementById('close-filtros');
+        const layout = document.querySelector('.catalogo-layout');
 
         if (!toggle || !sidebar) return;
 
-        const setOpenState = function (isOpen) {
+        const setSidebarState = (isOpen) => {
             sidebar.classList.toggle('open', isOpen);
             toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            if (layout) {
+                layout.classList.toggle('sidebar-visible', isOpen);
+            }
         };
 
         toggle.addEventListener('click', function () {
-            const isOpen = sidebar.classList.contains('open');
-            setOpenState(!isOpen);
+            const shouldOpen = !sidebar.classList.contains('open');
+            setSidebarState(shouldOpen);
         });
 
         if (closeBtn) {
             closeBtn.addEventListener('click', function () {
-                setOpenState(false);
+                setSidebarState(false);
             });
         }
 
         window.addEventListener('resize', function () {
             if (window.innerWidth >= 992) {
-                setOpenState(false);
+                setSidebarState(false);
             }
         });
     });
