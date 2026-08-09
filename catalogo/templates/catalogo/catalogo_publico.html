@@ -116,7 +116,9 @@
                     {% elif libro.contraportada %}
                         <img class="carousel-image active" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
                     {% else %}
-                        <div class="sin-portada" style="font-size: 100%;"> {{ libro.titulo }} 📖</div>
+                        <div class="sin-portada sin-portada-catalogo">
+                            <span>{{ libro.titulo }} 📖</span>
+                        </div>
                     {% endif %}
                 </div>
 
@@ -242,6 +244,26 @@
         window.addEventListener('resize', function () {
             setSidebarState(isDesktop() ? !layout?.classList.contains('sidebar-collapsed') : sidebar.classList.contains('open'));
         });
+
+        // Ajustar el tamaño de fuente de los títulos en los libros sin portada
+        const fitMissingCoverTitles = () => {
+            document.querySelectorAll('.sin-portada-catalogo span').forEach((title) => {
+                let fontSize = 16;
+                title.style.fontSize = `${fontSize}px`;
+
+                while (
+                    fontSize > 12 &&
+                    (title.scrollWidth > title.clientWidth || title.scrollHeight > title.clientHeight)
+                ) {
+                    fontSize -= 1;
+                    title.style.fontSize = `${fontSize}px`;
+                }
+            });
+        };
+
+        fitMissingCoverTitles();
+        window.addEventListener('resize', fitMissingCoverTitles);
+        //
     });
 </script>
 

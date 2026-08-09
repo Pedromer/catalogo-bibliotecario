@@ -57,6 +57,7 @@ body {
     gap: 1rem;
     align-items: flex-start;
     position: relative;
+    min-height: calc(100vh - 70px);
 }
 
 .catalogo-main-content {
@@ -77,16 +78,16 @@ body {
     box-shadow: var(--shadow);
     padding: 1rem;
     position: sticky;
-    top: 50vh;
+    top: 85px;
     left: auto;
-    transform: translateY(-50%);
+    transform: none;
     margin-left: 0;
     margin-right: 0;
     z-index: 1;
     transition: width 0.2s ease, padding 0.2s ease, border-color 0.2s ease;
     overflow-y: auto;
     align-self: flex-start;
-    max-height: calc(100vh - 120px);
+    max-height: calc(100vh - 100px);
 }
 
 .catalogo-layout.sidebar-collapsed .sidebar-filtros {
@@ -141,6 +142,7 @@ body {
 
     .catalogo-layout {
         display: block;
+        min-height: 0;
     }
 
     .public-content {
@@ -171,7 +173,7 @@ body {
         transform: translateX(-100%);
         padding-top: 1rem;
         padding-bottom: 1rem;
-        max-height: none;
+        max-height: calc(100vh - 70px);
         flex: 0 0 300px;
         box-shadow: 0 0 24px rgba(0,0,0,.12);
         z-index: 1020;
@@ -233,7 +235,19 @@ body {
     justify-content: center;
     background: var(--color-bg);
     color: var(--color-muted);
-    font-size: 2.5rem;
+    text-align: center;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.sin-portada-catalogo span {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    font-size: clamp(0.75rem, 3.5vw, 0.5rem);
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
 }
 
 .libro-card-body {
@@ -269,11 +283,10 @@ body {
 .sin-portada {
     line-height: normal;
     height: 100px;
-    display:block;
+    display: flex;
     font-style: italic;
     align-items: center;
     justify-content: center;
-    justify-items: center;
     background: var(--color-bg);
     color: var(--color-muted);
     font-size: 1rem;
