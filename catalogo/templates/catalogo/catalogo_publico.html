@@ -6,31 +6,31 @@
 
 {% block contenido %}
 
-<!-- Barra de búsqueda y filtros -->
-<div class="search-bar">
-    <form method="get" action="">
-        <div class="row g-2 align-items-end">
-            <!-- Buscador -->
-            <div class="col-md-4">
-                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
-                    BUSCAR
-                </label>
+<div class="catalogo-layout">
+    <aside id="sidebar-filtros" class="sidebar-filtros" aria-label="Panel de filtros">
+        <div class="sidebar-filtros-header">
+            <div>
+                <h5 class="mb-1">Filtros</h5>
+                <p class="mb-0">Busca y ordena tu catálogo</p>
+            </div>
+            <button type="button" class="btn-close-sidebar" id="close-filtros" aria-label="Cerrar filtros">✕</button>
+        </div>
+
+        <form method="get" action="" class="sidebar-filtros-form">
+            <div class="mb-3">
+                <label class="form-label fw-semibold mb-1">BUSCAR</label>
                 <input
                     type="text"
                     name="q"
                     value="{{ query|default_if_none:'' }}"
                     placeholder="Título, autor o ISBN..."
                     class="form-control"
-                    style="border-color:var(--color-border);"
                 >
             </div>
-            
-            <!-- Categoría -->
-            <div class="col-md-3">
-                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
-                    CATEGORÍA
-                </label>
-                <select name="categoria" class="form-select" style="border-color:var(--color-border);">
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold mb-1">CATEGORÍA</label>
+                <select name="categoria" class="form-select">
                     <option value="">Todas las categorías</option>
                     {% for cat in categorias %}
                     <option value="{{ cat.id }}" {% if categoria_id == cat.id|stringformat:"s" %}selected{% endif %}>
@@ -40,12 +40,9 @@
                 </select>
             </div>
 
-            <!-- Filtro de Orden -->
-            <div class="col-md-3">
-                <label class="form-label fw-semibold mb-1" style="font-size:.85rem; color:var(--color-muted);">
-                    ORDENAR POR
-                </label>
-                <select name="orden" class="form-select" style="border-color:var(--color-border);">
+            <div class="mb-3">
+                <label class="form-label fw-semibold mb-1">ORDENAR POR</label>
+                <select name="orden" class="form-select">
                     <option value="">Predeterminado</option>
                     <option value="titulo" {% if orden == 'titulo' %}selected{% endif %}>Título (A-Z)</option>
                     <option value="-titulo" {% if orden == '-titulo' %}selected{% endif %}>Título (Z-A)</option>
@@ -55,18 +52,17 @@
                     <option value="-anio_publicacion" {% if orden == '-anio_publicacion' %}selected{% endif %}>Año (desc)</option>
                 </select>
             </div>
-            <!-- Botones -->
-            <div class="col-md-2 d-flex gap-2">
-                <button type="submit" class="btn w-100" style="background:var(--color-primary); color:white;">
-                    Buscar
-                </button>
-                {% if query or categoria_id or filtro %}
-                <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-secondary">✕</a>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Buscar</button>
+                {% if query or categoria_id or orden %}
+                <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-secondary">Limpiar</a>
                 {% endif %}
             </div>
-        </div>
-    </form>
-</div>
+        </form>
+    </aside>
+
+    <div class="catalogo-main-content">
 
 <!-- Resultados -->
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -78,19 +74,35 @@
         {% endif %}
     </span>
 
-    <div class="btn-group" role="group" aria-label="Selector de vista">
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-grid">
-            ⊞ Grilla
-        </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-list">
-            ☰ Lista
-        </button>
+    <div class="d-flex gap-2 align-items-center">
+        <div class="btn-group" role="group" aria-label="Selector de vista">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-grid">
+                ⊞ Grilla
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-list">
+                ☰ Lista
+            </button>
+        </div>
+        <div class="btn-group" role="group" aria-label="Libros por página">
+            <a
+                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=16"
+                class="btn btn-outline-secondary btn-sm {% if page_size == '16' %}active{% endif %}"
+            >
+                16
+            </a>
+            <a
+                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=32"
+                class="btn btn-outline-secondary btn-sm {% if page_size == '32' %}active{% endif %}"
+            >
+                32
+            </a>
+        </div>
     </div>
 </div>
 
-{% if libros %}
+{% if libros_pagina %}
 <div id="contenedor-libros" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
-    {% for libro in libros %}
+    {% for libro in libros_pagina %}
     <div class="col item-libro">
         <a href="{% url 'catalogo:detalle_libro' libro.pk %}" class="text-decoration-none text-dark">
             <div class="libro-card h-100 d-flex flex-column {% if libro.portada and libro.contraportada %} libro-carousel{% endif %}">
@@ -104,7 +116,9 @@
                     {% elif libro.contraportada %}
                         <img class="carousel-image active" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
                     {% else %}
-                        <div class="sin-portada" style="font-size: 100%;"> {{ libro.titulo }} 📖</div>
+                        <div class="sin-portada sin-portada-catalogo">
+                            <span>{{ libro.titulo }} 📖</span>
+                        </div>
                     {% endif %}
                 </div>
 
@@ -147,6 +161,32 @@
     {% endfor %}
 </div>
 
+{% if libros_pagina.paginator.num_pages > 1 %}
+<nav class="mt-4" aria-label="Paginación del catálogo">
+    <ul class="pagination justify-content-center">
+        {% if libros_pagina.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ libros_pagina.previous_page_number }}">Anterior</a>
+        </li>
+        {% endif %}
+        {% for page_number in libros_pagina.paginator.page_range %}
+        <li class="page-item {% if page_number == libros_pagina.number %}active{% endif %}">
+            {% if page_number == libros_pagina.number %}
+            <span class="page-link" aria-current="page">{{ page_number }}</span>
+            {% else %}
+            <a class="page-link" href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_number }}">{{ page_number }}</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+        {% if libros_pagina.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ libros_pagina.next_page_number }}">Siguiente</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
 {% else %}
 <div class="text-center py-5" style="color:var(--color-muted);">
     <div style="font-size:3rem;">📭</div>
@@ -156,9 +196,75 @@
     </a>
 </div>
 {% endif %}
+    </div>
+</div>
 
 <script src="{% static 'catalogo/js/carrusel_portada.js' %}"></script>
-
 <script src="{% static 'catalogo/js/modo_vista.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('toggle-filtros');
+        const sidebar = document.getElementById('sidebar-filtros');
+        const closeBtn = document.getElementById('close-filtros');
+        const layout = document.querySelector('.catalogo-layout');
+
+        if (!toggle || !sidebar) return;
+
+        const isDesktop = () => window.innerWidth >= 992;
+
+        const setSidebarState = (isOpen) => {
+            if (isDesktop()) {
+                if (layout) {
+                    layout.classList.toggle('sidebar-collapsed', !isOpen);
+                }
+                sidebar.classList.remove('open');
+            } else {
+                if (layout) {
+                    layout.classList.remove('sidebar-collapsed');
+                }
+                sidebar.classList.toggle('open', isOpen);
+            }
+
+            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        };
+
+        toggle.addEventListener('click', function () {
+            const shouldOpen = isDesktop()
+                ? layout.classList.contains('sidebar-collapsed')
+                : !sidebar.classList.contains('open');
+            setSidebarState(shouldOpen);
+        });
+
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function () {
+                setSidebarState(false);
+            });
+        }
+
+        window.addEventListener('resize', function () {
+            setSidebarState(isDesktop() ? !layout?.classList.contains('sidebar-collapsed') : sidebar.classList.contains('open'));
+        });
+
+        // Ajustar el tamaño de fuente de los títulos en los libros sin portada
+        const fitMissingCoverTitles = () => {
+            document.querySelectorAll('.sin-portada-catalogo span').forEach((title) => {
+                let fontSize = 16;
+                title.style.fontSize = `${fontSize}px`;
+
+                while (
+                    fontSize > 12 &&
+                    (title.scrollWidth > title.clientWidth || title.scrollHeight > title.clientHeight)
+                ) {
+                    fontSize -= 1;
+                    title.style.fontSize = `${fontSize}px`;
+                }
+            });
+        };
+
+        fitMissingCoverTitles();
+        window.addEventListener('resize', fitMissingCoverTitles);
+        //
+    });
+</script>
 
 {% endblock %}
