@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Min
+from django.core.paginator import Paginator
 from .models import Libro, Categoria
 from .forms import LibroForm
 
@@ -51,9 +52,24 @@ def catalogo_publico(request):
         else:
             libros = libros.order_by(orden)
 
+    page_size = request.GET.get('por_pagina', '16')
+    if page_size not in ('16', '32'):
+        page_size = '16'
+
+    paginator = Paginator(libros, int(page_size))
+    page_number = request.GET.get('page')
+    libros_pagina = paginator.get_page(page_number)
+
+    pagination_params = request.GET.copy()
+    pagination_params.pop('page', None)
+    pagination_query = pagination_params.urlencode()
+
     # 6. Un único return con todo el contexto unificado
     return render(request, 'catalogo/catalogo_publico.html', {
         'libros'      : libros,
+        'libros_pagina': libros_pagina,
+        'page_size': page_size,
+        'pagination_query': pagination_query,
         'categorias'  : categorias,
         'query'       : query,
         'orden'       : orden,

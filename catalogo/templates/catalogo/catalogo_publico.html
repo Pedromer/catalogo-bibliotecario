@@ -74,19 +74,35 @@
         {% endif %}
     </span>
 
-    <div class="btn-group" role="group" aria-label="Selector de vista">
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-grid">
-            ⊞ Grilla
-        </button>
-        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-list">
-            ☰ Lista
-        </button>
+    <div class="d-flex gap-2 align-items-center">
+        <div class="btn-group" role="group" aria-label="Selector de vista">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-grid">
+                ⊞ Grilla
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-list">
+                ☰ Lista
+            </button>
+        </div>
+        <div class="btn-group" role="group" aria-label="Libros por página">
+            <a
+                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=16"
+                class="btn btn-outline-secondary btn-sm {% if page_size == '16' %}active{% endif %}"
+            >
+                16
+            </a>
+            <a
+                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=32"
+                class="btn btn-outline-secondary btn-sm {% if page_size == '32' %}active{% endif %}"
+            >
+                32
+            </a>
+        </div>
     </div>
 </div>
 
-{% if libros %}
+{% if libros_pagina %}
 <div id="contenedor-libros" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
-    {% for libro in libros %}
+    {% for libro in libros_pagina %}
     <div class="col item-libro">
         <a href="{% url 'catalogo:detalle_libro' libro.pk %}" class="text-decoration-none text-dark">
             <div class="libro-card h-100 d-flex flex-column {% if libro.portada and libro.contraportada %} libro-carousel{% endif %}">
@@ -142,6 +158,32 @@
     </div>
     {% endfor %}
 </div>
+
+{% if libros_pagina.paginator.num_pages > 1 %}
+<nav class="mt-4" aria-label="Paginación del catálogo">
+    <ul class="pagination justify-content-center">
+        {% if libros_pagina.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ libros_pagina.previous_page_number }}">Anterior</a>
+        </li>
+        {% endif %}
+        {% for page_number in libros_pagina.paginator.page_range %}
+        <li class="page-item {% if page_number == libros_pagina.number %}active{% endif %}">
+            {% if page_number == libros_pagina.number %}
+            <span class="page-link" aria-current="page">{{ page_number }}</span>
+            {% else %}
+            <a class="page-link" href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ page_number }}">{{ page_number }}</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+        {% if libros_pagina.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}page={{ libros_pagina.next_page_number }}">Siguiente</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
 
 {% else %}
 <div class="text-center py-5" style="color:var(--color-muted);">
