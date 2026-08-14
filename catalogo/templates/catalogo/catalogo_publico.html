@@ -107,6 +107,7 @@
         <a href="{% url 'catalogo:detalle_libro' libro.pk %}" class="text-decoration-none text-dark">
             <div class="libro-card h-100 d-flex flex-column {% if libro.portada and libro.contraportada %} libro-carousel{% endif %}">
 
+                <!-- Portada / Imagen -->
                 <div class="libro-card-media">
                     {% if libro.portada %}
                         <img class="carousel-image active" src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}">
@@ -122,38 +123,54 @@
                     {% endif %}
                 </div>
 
+                <!-- Cuerpo de la Card -->
                 <div class="libro-card-body d-flex flex-column flex-grow-1">
-                    <div class="libro-titulo fw-bold">{{ libro.titulo }}</div>
-                    <div class="libro-autores text-muted" style="font-size: 0.9rem;">
-                        {% for autor in libro.autores.all %}
-                            {{ autor.nombre }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    </div>
-                    {% if libro.categoria %}
-                    <div class="mt-2">
-                        <span class="badge-categoria badge bg-secondary">{{ libro.categoria.nombre }}</span>
-                    </div>
-                    {% endif %}
+    
+    <!-- COLUMNA 1 (Izquierda en Lista / Visible en Grilla) -->
+    <div class="libro-info-principal">
+        <div class="libro-titulo fw-bold">{{ libro.titulo }}</div>
+        <div class="libro-autores text-muted" style="font-size: 0.9rem;">
+            {% for autor in libro.autores.all %}
+                {{ autor.nombre }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                <span class="fst-italic">Autor no especificado</span>
+            {% endfor %}
+        </div>
+        {% if libro.categoria %}
+        <div class="mt-2">
+            <span class="badge-categoria badge bg-secondary">{{ libro.categoria.nombre }}</span>
+        </div>
+        {% endif %}
+    </div>
 
-                    <div class="info-extra d-none mt-3">
-                        {% if libro.anio_publicacion %}
-                            <p class="mb-1"><strong>Año:</strong> {{ libro.anio_publicacion }}</p>
-                        {% endif %}
-                        {% if libro.editoriales.all %}
-                            <p class="mb-1"><strong>Editorial:</strong>
-                                {% for ed in libro.editoriales.all %}{{ ed.nombre }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                            </p>
-                        {% endif %}
-                        {% if libro.ubicacion_fisica %}
-                            <p class="mb-1"><strong>Ubicación:</strong> {{ libro.ubicacion_fisica }}</p>
-                        {% endif %}
-                        {% if libro.descripcion %}
-                            <p class="mt-2 text-muted" style="font-size: 0.85rem;">
-                                {{ libro.descripcion|truncatewords:40 }}
-                            </p>
-                        {% endif %}
-                    </div>
+                <!-- COLUMNA 2 (Derecha en Lista / Oculta en Grilla) -->
+                <div class="info-extra d-none">
+                    {% if libro.anio_publicacion %}
+                        <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
+                            <strong class="text-dark">Año:</strong> {{ libro.anio_publicacion }}
+                        </p>
+                    {% endif %}
+                    {% if libro.editoriales.all %}
+                        <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
+                            <strong class="text-dark">Editorial:</strong>
+                            {% for ed in libro.editoriales.all %}
+                                {{ ed.nombre }}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </p>
+                    {% endif %}
+                    {% if libro.ubicacion_fisica %}
+                        <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
+                            <strong class="text-dark">Ubicación:</strong> {{ libro.ubicacion_fisica }}
+                        </p>
+                    {% endif %}
+                    {% if libro.descripcion %}
+                        <p class="mt-2 text-muted mb-0" style="font-size: 0.85rem; line-height: 1.4;">
+                            {{ libro.descripcion.plain|safe|truncatewords:28 }}
+                        </p>
+                    {% endif %}
                 </div>
+
+            </div>
 
             </div>
         </a>

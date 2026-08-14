@@ -1,8 +1,10 @@
+import json
 import os
 import re
 import time
 from io import BytesIO
 
+import openpyxl
 import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -40,10 +42,7 @@ def _download_image_content(url, filename_prefix, title=None):
     if isinstance(url, str):
         url = url.strip()
 
-    if not url:
-        return None
-
-    if not url.lower().startswith(('http://', 'https://')):
+    if not url or not url.lower().startswith(('http://', 'https://')):
         return None
 
     try:
@@ -80,6 +79,7 @@ def _download_image_content(url, filename_prefix, title=None):
 
     return ContentFile(content, name=filename)
 
+
 def _convert_drive_url(url):
     if not url:
         return url
@@ -88,17 +88,18 @@ def _convert_drive_url(url):
     if 'drive.google.com' not in url_str:
         return url_str
 
-    # Busca el ID de la imagen en el formato estándar de Drive (/file/d/ID/...)
+    # Formato estándar (/file/d/ID/...)
     match = re.search(r'/d/([a-zA-Z0-9_-]+)', url_str)
     if match:
         return f"https://drive.google.com/uc?export=download&id={match.group(1)}"
 
-    # Busca el ID en el formato de enlace alternativo (?id=ID)
+    # Formato alternativo (?id=ID)
     match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url_str)
     if match:
         return f"https://drive.google.com/uc?export=download&id={match.group(1)}"
 
     return url_str
+
 
 class GetOrCreateForeignKeyWidget(ForeignKeyWidget):
     def clean(self, value, row=None, **kwargs):
@@ -191,6 +192,42 @@ class LibroResource(resources.ModelResource):
         self._current_row_is_duplicate = False
         self._current_row_has_new_data = False
 
+    def before_import_row(self, row, **kwargs):
+        """
+        Normaliza campos de texto, convierte enlaces de Drive
+        y formatea el texto plano al JSON estructurado de Quill.
+        """
+        row['Titulo'] = _normalize_text(row.get('Titulo'))
+        row['Autores'] = _normalize_text(row.get('Autores'))
+        row['Categoria'] = _normalize_text(row.get('Categoria'))
+        row['Editorial'] = _normalize_text(row.get('Editorial'))
+        row['Ubicacion'] = _normalize_text(row.get('Ubicacion'))
+
+        # 1. Procesar Descripción para Quill
+        for col_name in ['Descripcion', 'descripcion', 'DESCRIPCION']:
+            if col_name in row and row[col_name]:
+                val = _normalize_text(row[col_name])
+                if val:
+                    # Si no viene con formato JSON de Quill, lo estructuramos
+                    if not (val.startswith('{') and '"html"' in val):
+                        payload = {
+                            "html": f"<p>{val}</p>",
+                            "delta": json.dumps({"ops": [{"insert": f"{val}\n"}]})
+                        }
+                        row[col_name] = json.dumps(payload)
+                    else:
+                        row[col_name] = val
+                break
+
+        # 2. Convertir enlaces de Google Drive
+        row['Portada_URL'] = _convert_drive_url(row.get('Portada_URL'))
+        row['Contraportada_URL'] = _convert_drive_url(row.get('Contraportada_URL'))
+
+        if not row['Titulo']:
+            raise ValueError('Titulo obligatorio')
+        if not row['Autores']:
+            raise ValueError('Autores obligatorio')
+
     def _get_author_names(self, row):
         values = row.get('Autores')
         if values is None:
@@ -272,7 +309,7 @@ class LibroResource(resources.ModelResource):
                 instance.anio_publicacion = publicacion_value
                 changed = True
 
-        descripcion_value = _normalize_text(row.get('Descripcion'))
+        descripcion_value = row.get('Descripcion')
         if self._has_value(descripcion_value) and not instance.descripcion:
             instance.descripcion = descripcion_value
             changed = True
@@ -297,14 +334,11 @@ class LibroResource(resources.ModelResource):
     def import_instance(self, instance, row, **kwargs):
         if self._current_row_is_duplicate:
             self._current_row_has_new_data = self._merge_duplicate_data(instance, row, **kwargs)
+            if self._current_row_has_new_data:
+                instance.save()
             return
 
         return super().import_instance(instance, row, **kwargs)
-
-    def skip_row(self, instance, original, row, import_validation_errors=None):
-        if self._current_row_is_duplicate and not self._current_row_has_new_data:
-            return True
-        return super().skip_row(instance, original, row, import_validation_errors=import_validation_errors)
 
     def after_import_row(self, row, row_result, **kwargs):
         if self._current_row_is_duplicate:
@@ -323,26 +357,7 @@ class LibroResource(resources.ModelResource):
         }
         return super().after_import(dataset, result, **kwargs)
 
-    def before_import_row(self, row, **kwargs):
-        row['Titulo'] = _normalize_text(row.get('Titulo'))
-        row['Autores'] = _normalize_text(row.get('Autores'))
-        row['Categoria'] = _normalize_text(row.get('Categoria'))
-        row['Editorial'] = _normalize_text(row.get('Editorial'))
-        row['Descripcion'] = _normalize_text(row.get('Descripcion'))
-        row['Ubicacion'] = _normalize_text(row.get('Ubicacion'))
-
-        # --- INTERCEPTAMOS LAS URLS DE DRIVE ---
-        row['Portada_URL'] = _convert_drive_url(row.get('Portada_URL'))
-        row['Contraportada_URL'] = _convert_drive_url(row.get('Contraportada_URL'))
-        # --------------------------------------------
-
-        if not row['Titulo']:
-            raise ValueError('Titulo obligatorio')
-        if not row['Autores']:
-            raise ValueError('Autores obligatorio')
-
     def skip_row(self, instance, original, row, import_validation_errors=None):
-        """Skip rows that are completely empty (all relevant columns blank)."""
         cols = [
             'Titulo', 'Autores', 'Categoria', 'ISBN', 'Editorial',
             'Publicacion', 'Descripcion', 'Cantidad', 'Ubicacion',
@@ -367,14 +382,10 @@ class LibroResource(resources.ModelResource):
         return super().skip_row(instance, original, row, import_validation_errors=import_validation_errors)
 
     def import_field(self, field, instance, row, is_m2m=False, **kwargs):
-        """Handle `portada` and `contraportada` specially: store ContentFile temporarily
-        so files are written after the instance is saved (avoids missing PK / storage issues).
-        """
         if not field.attribute or field.attribute not in ("portada", "contraportada"):
             return super().import_field(field, instance, row, is_m2m, **kwargs)
 
         col = field.column_name
-        # prefer resource clean_<col> if present (e.g. clean_portada_url)
         cleaner = getattr(self, f"clean_{col.lower()}", None)
         content = None
         if callable(cleaner):
@@ -392,10 +403,6 @@ class LibroResource(resources.ModelResource):
         return
 
     def after_save_instance(self, instance, row, **kwargs):
-        """Persist any temporary portada/contraportada files after instance saved.
-
-        Does nothing on dry_run.
-        """
         if kwargs.get('dry_run'):
             return
 
@@ -406,11 +413,9 @@ class LibroResource(resources.ModelResource):
                 continue
             name, content = tmp
             try:
-                # save=False to defer DB save until both files processed
                 getattr(instance, attr).save(name, content, save=False)
                 saved = True
             except Exception:
-                # don't raise here to keep import robust; errors surface elsewhere
                 pass
             finally:
                 try:
@@ -428,8 +433,10 @@ class LibroResource(resources.ModelResource):
             year = int(float(value))
         except (TypeError, ValueError):
             raise ValueError('Publicacion no es un número válido')
-        if year < 1800 or year > 2100:
-            raise ValueError('Publicacion debe estar entre 1800 y 2100')
+        
+        # Permitimos años a.C.
+        if year < -4000 or year > 2100:
+            raise ValueError('Publicacion debe estar entre -4000 y 2100')
         return year
 
     def clean_cantidad(self, value, row=None):
@@ -475,6 +482,11 @@ class LibroResource(resources.ModelResource):
     def dehydrate_publicacion(self, libro):
         return libro.anio_publicacion or ''
 
+    def dehydrate_descripcion(self, libro):
+        if libro.descripcion:
+            return getattr(libro.descripcion, 'plain', str(libro.descripcion))
+        return ''
+
     def dehydrate_cantidad(self, libro):
         return libro.cantidad_ejemplares
 
@@ -501,14 +513,3 @@ class LibroResource(resources.ModelResource):
         if not libro.contraportada:
             return ''
         return self._build_absolute_url(libro.contraportada.url)
-
-    def clean_cantidad(self, value, row=None):
-        if value in (None, ''):
-            return 1
-        try:
-            cantidad = int(float(value))
-        except (TypeError, ValueError):
-            raise ValueError('Cantidad no es un número válido')
-        if cantidad < 1:
-            raise ValueError('Cantidad debe ser al menos 1')
-        return cantidad

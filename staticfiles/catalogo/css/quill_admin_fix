@@ -1,0 +1,64 @@
+/* Corrección de tipografía y tamaños en los desplegables de Quill */
+.ql-snow .ql-picker {
+    font-size: 13px !important;
+    line-height: 24px !important;
+    height: 28px !important;
+}
+
+.ql-snow .ql-picker-label {
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 8px !important;
+    padding-right: 2px !important;
+}
+
+/* Opciones desplegables del menú (Heading 1, Heading 2, etc.) */
+.ql-snow .ql-picker-options {
+    padding: 4px 8px !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.ql-snow .ql-picker-options .ql-picker-item {
+    font-size: 13px !important;
+    line-height: 24px !important;
+    padding: 2px 4px !important;
+    color: #334155 !important;
+}
+
+.ql-snow .ql-picker-options .ql-picker-item:hover {
+    color: #2563eb !important;
+    background-color: #f1f5f9 !important;
+    border-radius: 4px !important;
+}
+
+/* Ajustes de tamaño para las opciones de encabezado */
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+}
+
+/* Evitar desbordamiento en el contenedor del editor */
+.django-quill-widget {
+    max-width: 100% !important;
+}
+
+.ql-container.ql-snow {
+    min-height: 180px !important;
+    font-size: 14px !important;
+}

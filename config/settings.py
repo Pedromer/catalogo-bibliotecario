@@ -8,11 +8,10 @@ Optimizado para Vercel + Supabase
 from pathlib import Path
 import os
 from decouple import config
-
 import cloudinary
-from decouple import config
+from django.templatetags.static import static
 
-# 
+
 cloudinary.config(
     cloud_name=config('CLOUDINARY_CLOUD_NAME', default=''),
     api_key=config('CLOUDINARY_API_KEY', default=''),
@@ -73,7 +72,10 @@ INSTALLED_APPS = [
     'catalogo',
     'cloudinary_storage',
     'cloudinary',
+    'django_quill',
 ]
+
+
 
 if not DEBUG:
     STORAGES = {
@@ -93,6 +95,22 @@ else:
             "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
         },
     }
+
+## editor de texto descripcion: este bloque desabilita la carga de imagenes
+QUILL_CONFIGS = {
+    'default': {
+        'theme': 'snow',
+        'modules': {
+            'toolbar': [
+                [{ 'header': 1 }, { 'header': 2 }, { 'header': 3 },  { 'header': 4 }],  # <-- Botones individuales H1, H2, H3
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                ['link', 'video'],
+                ['clean']
+            ]
+        }
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -136,6 +154,9 @@ if not database_url:
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
             'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {
+            'timeout': 60,  # 60 segundos de espera para que termine de escribir
+        },
         }
     }
 else:
@@ -174,6 +195,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+
 # En desarrollo local, también servir desde la carpeta static
 if DEBUG:
     STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
@@ -182,13 +208,27 @@ if DEBUG:
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Configuración de seguridad para producción
+
+from django.templatetags.static import static
+
+UNFOLD = {
+    "SCRIPTS": [
+        lambda request: "https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js",
+        lambda request: static("js/select2_custom_add.js"),
+        lambda request: static("js/image_cropper.js"),
+    ],
+    "STYLES": [
+        lambda request: "https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css",
+    ],
+}
+
+ # Configuración de seguridad para producción
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_SECURITY_POLICY = {
-        'default-src': ("'self'",),
-    }
+'default-src': ("'self'",),
+}
   

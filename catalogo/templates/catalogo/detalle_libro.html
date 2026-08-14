@@ -69,12 +69,6 @@
             <span class="badge-categoria mb-3 d-inline-block">{{ libro.categoria.nombre }}</span>
             {% endif %}
 
-            {% if libro.descripcion %}
-            <p style="color:var(--color-text); line-height:1.7; margin-bottom:1.5rem;">
-                {{ libro.descripcion }}
-            </p>
-            {% endif %}
-
             <dl class="detalle-meta row">
                 {% if libro.editoriales.all %}
                 <dt class="col-sm-4">Editorial/es disponibles</dt>
@@ -103,6 +97,27 @@
                 <dt class="col-sm-4">Ejemplares</dt>
                 <dd class="col-sm-8">{{ libro.cantidad_ejemplares }}</dd>
             </dl>
+
+            {% if libro.descripcion %}
+            <p style="color:var(--color-text); line-height:1.7; margin-bottom:1.5rem;">
+                {{ libro.descripcion.html|safe }}
+            </p>
+            {% endif %}
+            
+            <!-- Botones de descarga por si en algun momento se anade soporte para ellos -->
+            {% if libro.archivo_pdf %}
+            <a href="{{ libro.archivo_pdf.url }}" target="_blank" class="btn btn-primary mb-3">
+                📄 Descargar PDF
+            </a>
+            {% endif %}
+
+            {% if libro.archivo_epub %}
+            <a href="{{ libro.archivo_epub.url }}" target="_blank" class="btn btn-primary mb-3">
+                📖 Descargar EPUB
+            </a>
+            {% endif %}
+
+            <!-- Botones de descarga por si en algun momento se anade soporte para ellos -->
 
             {% if user.is_authenticated %}
             <div class="mt-3 pt-3" style="border-top:1px solid var(--color-border);">

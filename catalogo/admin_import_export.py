@@ -55,7 +55,7 @@ class XLSXPadded(BaseXLSX):
 
 class LibroImportExportAdmin(ImportExportModelAdmin):
 
-    
+    use_transactions = True
     resource_class = LibroResource
     formats = [XLSXPadded]
     from_encoding = 'utf-8-sig'
