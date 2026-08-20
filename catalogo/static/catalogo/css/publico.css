@@ -299,12 +299,15 @@ body {
     padding: 2rem;
 }
 
+
 .detalle-portada img {
-    width: 100%;
+    max-width: 100%;
+    max-height: 380px;
     height: auto;
     border-radius: var(--radius);
     border: 1px solid var(--color-border);
     display: block;
+    margin: 0 auto;
 }
 
 .detalle-meta dt {
