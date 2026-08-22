@@ -1,28 +1,38 @@
 {% extends "admin/change_list.html" %}
 
 {% block object-tools-items %}
-    <li>
-        <a href="{{ urlname|add:'add' }}"
-           class="inline-flex items-center gap-2 rounded-md border border-transparent bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-            <span class="material-symbols-outlined">add</span>
-            Agregar
-        </a>
-    </li>
+    {# 1. Botón Agregar: Solo si puede crear libros #}
+    {% if perms.catalogo.add_libro %}
+        <li>
+            <a href="{{ urlname|add:'add' }}"
+               class="inline-flex items-center gap-2 rounded-md border border-transparent bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                <span class="material-symbols-outlined">add</span>
+                Agregar
+            </a>
+        </li>
+    {% endif %}
 
-    <li>
-        <a href="{{ urlname|add:'import' }}"
-           class="inline-flex items-center gap-2 rounded-md border border-transparent bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
-            <span class="material-symbols-outlined">file_upload</span>
-            Importar
-        </a>
-    </li>
-    <li>
-        <a href="{{ urlname|add:'export' }}"
-           class="inline-flex items-center gap-2 rounded-md border border-transparent bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
-            <span class="material-symbols-outlined">file_download</span>
-            Exportar
-        </a>
-    </li>
+    {# 2. Botón Importar: Solo si puede crear libros #}
+    {% if perms.catalogo.add_libro %}
+        <li>
+            <a href="{{ urlname|add:'import' }}"
+               class="inline-flex items-center gap-2 rounded-md border border-transparent bg-primary-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+                <span class="material-symbols-outlined">file_upload</span>
+                Importar
+            </a>
+        </li>
+    {% endif %}
+
+    {# 3. Botón Exportar: Si puede ver los libros #}
+    {% if perms.catalogo.view_libro %}
+        <li>
+            <a href="{{ urlname|add:'export' }}"
+               class="inline-flex items-center gap-2 rounded-md border border-transparent bg-green-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                <span class="material-symbols-outlined">file_download</span>
+                Exportar
+            </a>
+        </li>
+    {% endif %}
 {% endblock %}
 
 {% block content_title %}

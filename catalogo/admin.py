@@ -4,9 +4,13 @@ from django.utils.safestring import mark_safe
 from django_quill.widgets import QuillWidget
 from django_quill.forms import QuillFormField
 from unfold.admin import ModelAdmin, TabularInline
-
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 from .models import Libro, Autor, Categoria, Editorial
 from .admin_import_export import LibroImportExportAdmin
+
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm
+from unfold.forms import UserCreationForm as UnfoldUserCreationForm
 
 
 # --- Personalización del Widget de Quill para Unfold/Tailwind ---
@@ -179,3 +183,52 @@ class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
             'js/image_cropper.js',
             'js/select2_custom_add.js',
         )
+
+
+# 1. Formulario de Creación extendido
+class CustomUserCreationForm(UnfoldUserCreationForm):
+    class Meta(UnfoldUserCreationForm.Meta):
+        model = User
+        # Definimos todos los campos que queremos llenar desde el momento cero.
+        # Las contraseñas se manejan solas gracias a UnfoldUserCreationForm.
+        fields = (
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "groups",
+            "user_permissions",
+        )
+
+
+# 2. Desregistrar el User original
+admin.site.unregister(User)
+
+
+# 3. Registrar nuestro UserAdmin personalizado
+@admin.register(User)
+class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
+    # Formularios de Unfold
+    form = UserChangeForm
+    add_form = CustomUserCreationForm
+    change_password_form = AdminPasswordChangeForm
+
+    # FIELDSETS DE CREACIÓN (add_fieldsets)
+    # Heredamos el bloque nativo inicial (que renderiza Usuario y las 2 Contraseñas)
+    # y le concatenamos los mismos bloques exactos que tiene la vista de EDICIÓN.
+    add_fieldsets = BaseUserAdmin.add_fieldsets + (
+        ('Información personal', {
+            'fields': ('first_name', 'last_name', 'email')
+        }),
+        ('Permisos', {
+            'fields': (
+                'is_active',
+                'is_staff',
+                'is_superuser',
+                'groups',
+            ),
+        }),
+    )
