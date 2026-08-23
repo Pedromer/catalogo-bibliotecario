@@ -34,13 +34,16 @@
             }
         }
 
-        // Construir la URL con los flags nativos de popup de Django
-        const popupUrl = `/admin/catalogo/${modelName}/add/?_to_field=id&_popup=1&nombre=${encodeURIComponent(cleanTerm)}`;
+        const adminPrefix = window.location.pathname.includes('/catalogo/') 
+            ? window.location.pathname.split('/catalogo/')[0] 
+            : '';
 
+        // Construir la URL con los flags nativos de popup de Django
+        const popupUrl = `${adminPrefix}/catalogo/${modelName}/add/?_to_field=id&_popup=1&nombre=${encodeURIComponent(cleanTerm)}`;
         // Buscar el botón nativo "+" si existe para invocar la función oficial del admin
         const addBtn = document.getElementById(`add_id_${selectName}`) || 
                        document.querySelector(`a#add_id_${selectName}`) ||
-                       document.querySelector(`a[href*="/admin/catalogo/${modelName}/add/"]`);
+                       document.querySelector(`a[href*="/catalogo/${modelName}/add/"]`);
 
         if (addBtn && typeof window.showRelatedObjectPopup === 'function') {
             const tempHref = addBtn.getAttribute('href');
