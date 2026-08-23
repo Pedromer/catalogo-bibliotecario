@@ -30,18 +30,14 @@
         </form>
         <div class="d-flex gap-2 align-items-center">
             {% block navbar_actions %}{% endblock %}
+
+            {% if user.is_authenticated %}
+            <a href="{% url 'admin:index' %}" class="btn btn-outline-light btn-sm">Interno</a>
+            {% endif %}
+
             <button class="btn btn-outline-light btn-sm d-flex align-items-center gap-2" type="button" id="toggle-filtros" aria-controls="sidebar-filtros" aria-expanded="false">
                 <span>☰</span>
-                <span>Filtros</span>
             </button>
-            {% if user.is_authenticated %}
-            <a href="/admin/catalogo/libro/"
-               class="btn btn-warning btn-sm">+ Agregar libro</a>
-            <a href="/admin/" class="btn btn-outline-light btn-sm">Panel Admin</a>
-            {% else %}
-            <a href="/admin/login/?next=/admin/"
-               class="btn btn-outline-light btn-sm">Acceso bibliotecarios</a>
-            {% endif %}
         </div>
     </div>
 </nav>
