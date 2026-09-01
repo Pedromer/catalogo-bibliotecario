@@ -52,9 +52,9 @@ def catalogo_publico(request):
         else:
             libros = libros.order_by(orden)
 
-    page_size = request.GET.get('por_pagina', '16')
-    if page_size not in ('16', '32'):
-        page_size = '16'
+    page_size = request.GET.get('por_pagina', '20')
+    if page_size not in ('20', '40'):
+        page_size = '20'
 
     paginator = Paginator(libros, int(page_size))
     page_number = request.GET.get('page')

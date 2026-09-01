@@ -1,13 +1,13 @@
 :root {
-    --color-primary:    #a30000;
+    --color-primary: #a30000;
     --color-primary-dk: #8a0000;
-    --color-bg:         #fcf8f8;
-    --color-surface:    #ffffff;
-    --color-border:     #f0e2e2;
-    --color-text:       #3b1e1e;
-    --color-muted:      #8b6464;
-    --radius:           0.5rem;
-    --shadow:           0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+    --color-bg: #fcf8f8;
+    --color-surface: #ffffff;
+    --color-border: #f0e2e2;
+    --color-text: #3b1e1e;
+    --color-muted: #8b6464;
+    --radius: 0.5rem;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05); 
 }
 
 body {
@@ -16,6 +16,46 @@ body {
     font-family: 'Inter', system-ui, sans-serif;
     padding-top: 70px;
 }
+
+/* base publica */
+
+/* Transición suave para el icono del botón */
+/* Transición solo para el icono */
+#toggle-filtros .toggle-icon {
+    display: inline-block;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Hover sobre el icono */
+#toggle-filtros:hover .toggle-icon {
+    transform: scale(1.15);
+}
+
+/* Rotación del icono al estar activo */
+#toggle-filtros[aria-expanded="true"] .toggle-icon {
+    transform: rotate(90deg);
+}
+
+/* Hover cuando ya está rotado */
+#toggle-filtros[aria-expanded="true"]:hover .toggle-icon {
+    transform: rotate(90deg) scale(1.15);
+}
+
+.btn-main {
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+}
+.btn-main:hover {
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+    transform: scale(1.04)
+}
+
+.btn-outline-secondary:hover {
+    transform: scale(1.04)
+}
+
+/*navbar*/
 
 .navbar-publica {
     background: var(--color-primary);
@@ -26,27 +66,39 @@ body {
     left: 0;
     right: 0;
     z-index: 1030;
+    
 }
 
 .navbar-publica .container {
+
     padding-left: 1rem;
     padding-right: 1rem;
 }
 
 .public-content {
     width: 90%;
-    margin-left: 2.5%;
-    margin-right: 2.5%;
+    margin: 0 auto;
+    overflow: visible !important;
 }
 
-.navbar-search-form {
-    flex: 1 1 360px;
-    max-width: 460px;
-    margin: 0 1rem;
-}
+/*catalogo publico*/
 
-.navbar-search-form .form-control {
-    border-color: var(--color-border);
+/* Barra de herramientas */
+.catalogo-toolbar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 62px;
+    z-index: 1020;
+    background: var(--color-bg);
+    
+    /* Expande el fondo 12px para que no haya intersecciones visibles */
+    margin-left: -12px;
+    margin-right: -12px;
+    
+    padding: 0.75rem 12px;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--color-border);
+    box-sizing: border-box;
 }
 
 .catalogo-layout {
@@ -63,8 +115,7 @@ body {
     min-width: 0;
     width: 100%;
     max-width: 1200px;
-    margin: 0 auto;
-    padding-right: 1rem;
+    margin: 0 auto; /* Se mantendrá centrado automáticamente */
 }
 
 .sidebar-filtros {
@@ -76,7 +127,7 @@ body {
     box-shadow: var(--shadow);
     padding: 1rem;
     position: sticky;
-    top: 85px;
+    top: 135px;
     left: auto;
     transform: none;
     margin-left: 0;
@@ -85,7 +136,7 @@ body {
     transition: width 0.2s ease, padding 0.2s ease, border-color 0.2s ease;
     overflow-y: auto;
     align-self: flex-start;
-    max-height: calc(100vh - 100px);
+    max-height: calc(100vh - 145px);
 }
 
 .catalogo-layout.sidebar-collapsed .sidebar-filtros {
@@ -145,8 +196,6 @@ body {
 
     .public-content {
         width: 90%;
-        margin-left: 5%;
-        margin-right: 2.5%;
     }
 
     .catalogo-main-content {
@@ -270,9 +319,9 @@ body {
 }
 
 .badge-categoria {
-    background: #eff6ff;
+    background: var(--color-bg);
     color: var(--color-primary);
-    border: 1px solid #ffffff;
+    
     font-size: .75rem;
     padding: .2rem .55rem;
     border-radius: 999px;
@@ -301,8 +350,8 @@ body {
 
 
 .detalle-portada img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 80%;
+    max-height: 80%;
     height: auto;
     border-radius: var(--radius);
     border: 1px solid var(--color-border);
@@ -383,4 +432,14 @@ body {
         gap: 1.5rem;
         align-items: start;
     }
+}
+
+
+/* PAGINATION */
+
+.pagination {
+    --bs-pagination-color: var(--color-primary);
+    --bs-pagination-hover-color: var(--color-primary);
+    --bs-pagination-active-bg: var(--color-primary);
+    --bs-pagination-active-border-color: var(--color-primary);
 }

@@ -6,6 +6,59 @@
 
 {% block contenido %}
 
+<!-- Barra de herramientas-->
+<div class="catalogo-toolbar d-flex justify-content-between align-items-center">
+    
+    <!-- Izquierda: Botón Filtros-->
+    <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" 
+                type="button" 
+                id="toggle-filtros" 
+                aria-controls="sidebar-filtros" 
+                aria-expanded="true" 
+                title="Alternar filtros">
+            <span class="toggle-icon">☰</span>
+            <span class="fw-semibold">Filtros</span>
+        </button>
+
+        <span style="font-size: .9rem; color: var(--color-muted);">
+            {% if query or categoria_id %}
+                {{ libros.count }} resultado{{ libros.count|pluralize }} encontrado{{ libros.count|pluralize }}
+            {% else %}
+                {{ libros.count }} libro{{ libros.count|pluralize }} en el catálogo
+            {% endif %}
+        </span>
+    </div>
+
+    <!-- Derecha: Selector de vista + Cantidad por página -->
+    <div class="d-flex gap-2 align-items-center">
+        <div class="btn-group" role="group" aria-label="Selector de vista">
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-grid" title="Vista cuadrícula">
+                ⊞
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-list" title="Vista lista">
+                ☰
+            </button>
+        </div>
+
+        <div class="btn-group" role="group" aria-label="Libros por página">
+            <a
+                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=20"
+                class="btn btn-outline-secondary btn-sm {% if page_size == '20' %}active{% endif %}"
+            >
+                20
+            </a>
+            <a
+                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=40"
+                class="btn btn-outline-secondary btn-sm {% if page_size == '40' %}active{% endif %}"
+            >
+                40
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Layout de Contenido -->
 <div class="catalogo-layout">
     <aside id="sidebar-filtros" class="sidebar-filtros" aria-label="Panel de filtros">
         <div class="sidebar-filtros-header">
@@ -54,7 +107,7 @@
             </div>
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Buscar</button>
+                <button type="submit" class="btn btn-main">Buscar</button>
                 {% if query or categoria_id or orden %}
                 <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-secondary">Limpiar</a>
                 {% endif %}
@@ -63,121 +116,95 @@
     </aside>
 
     <div class="catalogo-main-content">
+        {% if libros_pagina %}
+        <div id="contenedor-libros" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
+            {% for libro in libros_pagina %}
+            <div class="col item-libro">
+                <a href="{% url 'catalogo:detalle_libro' libro.pk %}" class="text-decoration-none text-dark">
+                    <div class="libro-card h-100 d-flex flex-column {% if libro.portada and libro.contraportada %} libro-carousel{% endif %}">
 
-<!-- Resultados -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <span style="font-size:.9rem; color:var(--color-muted);">
-        {% if query or categoria_id %}
-            {{ libros.count }} resultado{{ libros.count|pluralize }} encontrado{{ libros.count|pluralize }}
-        {% else %}
-            {{ libros.count }} libro{{ libros.count|pluralize }} en el catálogo
-        {% endif %}
-    </span>
-
-    <div class="d-flex gap-2 align-items-center">
-        <div class="btn-group" role="group" aria-label="Selector de vista">
-            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-grid">
-                ⊞
-            </button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-list">
-                ☰
-            </button>
-        </div>
-        <div class="btn-group" role="group" aria-label="Libros por página">
-            <a
-                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=16"
-                class="btn btn-outline-secondary btn-sm {% if page_size == '16' %}active{% endif %}"
-            >
-                16
-            </a>
-            <a
-                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=32"
-                class="btn btn-outline-secondary btn-sm {% if page_size == '32' %}active{% endif %}"
-            >
-                32
-            </a>
-        </div>
-    </div>
-</div>
-
-{% if libros_pagina %}
-<div id="contenedor-libros" class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5 g-3">
-    {% for libro in libros_pagina %}
-    <div class="col item-libro">
-        <a href="{% url 'catalogo:detalle_libro' libro.pk %}" class="text-decoration-none text-dark">
-            <div class="libro-card h-100 d-flex flex-column {% if libro.portada and libro.contraportada %} libro-carousel{% endif %}">
-
-                <!-- Portada / Imagen -->
-                <div class="libro-card-media">
-                    {% if libro.portada %}
-                        <img class="carousel-image active" src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}">
-                        {% if libro.contraportada %}
-                            <img class="carousel-image" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
-                        {% endif %}
-                    {% elif libro.contraportada %}
-                        <img class="carousel-image active" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
-                    {% else %}
-                        <div class="sin-portada sin-portada-catalogo">
-                            <span>{{ libro.titulo }} 📖</span>
+                        <!-- Portada / Imagen -->
+                        <div class="libro-card-media">
+                            {% if libro.portada %}
+                                <img class="carousel-image active" src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}">
+                                {% if libro.contraportada %}
+                                    <img class="carousel-image" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
+                                {% endif %}
+                            {% elif libro.contraportada %}
+                                <img class="carousel-image active" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
+                            {% else %}
+                                <div class="sin-portada sin-portada-catalogo">
+                                    <span>{{ libro.titulo }} 📖</span>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% endif %}
-                </div>
 
-                <!-- Cuerpo de la Card -->
-                <div class="libro-card-body d-flex flex-column flex-grow-1">
-    
-    <!-- COLUMNA 1 (Izquierda en Lista / Visible en Grilla) -->
-    <div class="libro-info-principal">
-        <div class="libro-titulo fw-bold">{{ libro.titulo }}</div>
-        <div class="libro-autores text-muted" style="font-size: 0.9rem;">
-            {% for autor in libro.autores.all %}
-                {{ autor.nombre }}{% if not forloop.last %}, {% endif %}
-            {% empty %}
-                <span class="fst-italic">Autor no especificado</span>
+                        <!-- Cuerpo de la Card -->
+                        <div class="libro-card-body d-flex flex-column flex-grow-1">
+                            <!-- Columna 1 -->
+                            <div class="libro-info-principal">
+                                <div class="libro-titulo fw-bold">{{ libro.titulo }}</div>
+                                <div class="libro-autores text-muted" style="font-size: 0.9rem;">
+                                    {% for autor in libro.autores.all %}
+                                        {{ autor.nombre }}{% if not forloop.last %}, {% endif %}
+                                    {% empty %}
+                                        <span class="fst-italic">Autor no especificado</span>
+                                    {% endfor %}
+                                </div>
+                                {% if libro.categoria %}
+                                <div class="mt-2">
+                                    <span class="badge-categoria badge">{{ libro.categoria.nombre }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Columna 2 (Vista Lista) -->
+                            <div class="info-extra d-none">
+                                {% if libro.anio_publicacion %}
+                                    <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
+                                        <strong class="text-dark">Año:</strong> {{ libro.anio_publicacion }}
+                                    </p>
+                                {% endif %}
+                                {% if libro.editoriales.all %}
+                                    <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
+                                        <strong class="text-dark">Editorial:</strong>
+                                        {% for ed in libro.editoriales.all %}
+                                            {{ ed.nombre }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                {% endif %}
+                                {% if libro.ubicacion_fisica %}
+                                    <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
+                                        <strong class="text-dark">Ubicación:</strong> {{ libro.ubicacion_fisica }}
+                                    </p>
+                                {% endif %}
+                                {% if libro.descripcion %}
+                                    <p class="mt-2 text-muted mb-0" style="font-size: 0.85rem; line-height: 1.4;">
+                                        {{ libro.descripcion.plain|safe|truncatewords:28 }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                    </div>
+                </a>
+            </div>
             {% endfor %}
         </div>
-        {% if libro.categoria %}
-        <div class="mt-2">
-            <span class="badge-categoria badge">{{ libro.categoria.nombre }}</span>
+
+        {% else %}
+        <div class="text-center py-5" style="color:var(--color-muted);">
+            <div style="font-size:3rem;">📭</div>
+            <p class="mt-2">No se encontraron libros con esos criterios.</p>
+            <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-primary btn-sm">
+                Ver todos los libros
+            </a>
         </div>
         {% endif %}
     </div>
-
-                <!-- COLUMNA 2 (Derecha en Lista / Oculta en Grilla) -->
-                <div class="info-extra d-none">
-                    {% if libro.anio_publicacion %}
-                        <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
-                            <strong class="text-dark">Año:</strong> {{ libro.anio_publicacion }}
-                        </p>
-                    {% endif %}
-                    {% if libro.editoriales.all %}
-                        <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
-                            <strong class="text-dark">Editorial:</strong>
-                            {% for ed in libro.editoriales.all %}
-                                {{ ed.nombre }}{% if not forloop.last %}, {% endif %}
-                            {% endfor %}
-                        </p>
-                    {% endif %}
-                    {% if libro.ubicacion_fisica %}
-                        <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
-                            <strong class="text-dark">Ubicación:</strong> {{ libro.ubicacion_fisica }}
-                        </p>
-                    {% endif %}
-                    {% if libro.descripcion %}
-                        <p class="mt-2 text-muted mb-0" style="font-size: 0.85rem; line-height: 1.4;">
-                            {{ libro.descripcion.plain|safe|truncatewords:28 }}
-                        </p>
-                    {% endif %}
-                </div>
-
-            </div>
-
-            </div>
-        </a>
-    </div>
-    {% endfor %}
 </div>
 
+<!-- Paginación -->
 {% if libros_pagina.paginator.num_pages > 1 %}
 <nav class="mt-4" aria-label="Paginación del catálogo">
     <ul class="pagination justify-content-center">
@@ -204,84 +231,8 @@
 </nav>
 {% endif %}
 
-{% else %}
-<div class="text-center py-5" style="color:var(--color-muted);">
-    <div style="font-size:3rem;">📭</div>
-    <p class="mt-2">No se encontraron libros con esos criterios.</p>
-    <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-primary btn-sm">
-        Ver todos los libros
-    </a>
-</div>
-{% endif %}
-    </div>
-</div>
-
 <script src="{% static 'catalogo/js/carrusel_portada.js' %}"></script>
 <script src="{% static 'catalogo/js/modo_vista.js' %}"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const toggle = document.getElementById('toggle-filtros');
-        const sidebar = document.getElementById('sidebar-filtros');
-        const closeBtn = document.getElementById('close-filtros');
-        const layout = document.querySelector('.catalogo-layout');
-
-        if (!toggle || !sidebar) return;
-
-        const isDesktop = () => window.innerWidth >= 992;
-
-        const setSidebarState = (isOpen) => {
-            if (isDesktop()) {
-                if (layout) {
-                    layout.classList.toggle('sidebar-collapsed', !isOpen);
-                }
-                sidebar.classList.remove('open');
-            } else {
-                if (layout) {
-                    layout.classList.remove('sidebar-collapsed');
-                }
-                sidebar.classList.toggle('open', isOpen);
-            }
-
-            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-        };
-
-        toggle.addEventListener('click', function () {
-            const shouldOpen = isDesktop()
-                ? layout.classList.contains('sidebar-collapsed')
-                : !sidebar.classList.contains('open');
-            setSidebarState(shouldOpen);
-        });
-
-        if (closeBtn) {
-            closeBtn.addEventListener('click', function () {
-                setSidebarState(false);
-            });
-        }
-
-        window.addEventListener('resize', function () {
-            setSidebarState(isDesktop() ? !layout?.classList.contains('sidebar-collapsed') : sidebar.classList.contains('open'));
-        });
-
-        // Ajustar el tamaño de fuente de los títulos en los libros sin portada
-        const fitMissingCoverTitles = () => {
-            document.querySelectorAll('.sin-portada-catalogo span').forEach((title) => {
-                let fontSize = 16;
-                title.style.fontSize = `${fontSize}px`;
-
-                while (
-                    fontSize > 12 &&
-                    (title.scrollWidth > title.clientWidth || title.scrollHeight > title.clientHeight)
-                ) {
-                    fontSize -= 1;
-                    title.style.fontSize = `${fontSize}px`;
-                }
-            });
-        };
-
-        fitMissingCoverTitles();
-        window.addEventListener('resize', fitMissingCoverTitles);
-        //
-    });
-</script>
+<script src="{% static 'catalogo/js/sidebar.js' %}"></script>
 
 {% endblock %}
