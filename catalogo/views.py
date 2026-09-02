@@ -1,18 +1,18 @@
-from django.shortcuts import render, redirect, get_object_or_404
+import os
+import requests
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q, Min
 from django.core.paginator import Paginator
 from .models import Libro, Categoria
 from .forms import LibroForm
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.db.models import Q
-from .models import Libro, Categoria
-from .forms import LibroForm
-
+#########################
 
 def catalogo_publico(request):
     """
@@ -128,3 +128,85 @@ def eliminar_libro(request, pk):
         return redirect('catalogo:lista_libros')
 
     return render(request, 'catalogo/confirmar_baja.html', {'libro': libro})
+
+## BUSCAR PORTADA POR ISBN
+@login_required
+def buscar_portada_isbn(request):
+    """
+    Consulta ambas fuentes de Open Library:
+    1. Covers API directa (-L.jpg en alta calidad).
+    2. Endpoint de metadatos (jscmd=data).
+    Guarda las encontradas y devuelve una lista de opciones para el modal.
+    """
+    isbn = request.GET.get('isbn', '').strip().replace('-', '')
+
+    if not isbn:
+        return JsonResponse({'encontrado': False, 'error': 'ISBN no proporcionado.'})
+
+    opciones = []
+
+    # -------------------------------------------------------------
+    # 1. Opción A: API Covers directa (-L.jpg)
+    # -------------------------------------------------------------
+    url_covers_api = f'https://covers.openlibrary.org/b/isbn/{isbn}-L.jpg?default=false'
+    try:
+        res_covers = requests.get(url_covers_api, timeout=8, allow_redirects=True)
+        if res_covers.status_code == 200 and 'image' in res_covers.headers.get('Content-Type', ''):
+            nombre_archivo = f'portadas/portada_isbn_{isbn}_archive.jpg'
+            if default_storage.exists(nombre_archivo):
+                try:
+                    default_storage.delete(nombre_archivo)
+                except Exception:
+                    pass
+            
+            ruta_guardada = default_storage.save(nombre_archivo, ContentFile(res_covers.content))
+            opciones.append({
+                'url_preview': default_storage.url(ruta_guardada),
+                'ruta_relativa': ruta_guardada,
+                'titulo': 'Edición Digitalizada (Covers API / Archive.org)'
+            })
+    except Exception:
+        pass
+
+    # -------------------------------------------------------------
+    # 2. Opción B: Endpoint de metadatos (jscmd=data)
+    # -------------------------------------------------------------
+    try:
+        api_meta_url = f'https://openlibrary.org/api/books?bibkeys=ISBN:{isbn}&format=json&jscmd=data'
+        res_meta = requests.get(api_meta_url, timeout=8)
+        datos_meta = res_meta.json()
+        clave = f'ISBN:{isbn}'
+
+        if clave in datos_meta and 'cover' in datos_meta[clave]:
+            url_meta = datos_meta[clave]['cover'].get('large') or datos_meta[clave]['cover'].get('medium')
+            if url_meta:
+                res_img_meta = requests.get(url_meta, timeout=8)
+                if res_img_meta.status_code == 200 and 'image' in res_img_meta.headers.get('Content-Type', ''):
+                    ext = 'jpg' if 'jpeg' in res_img_meta.headers.get('Content-Type', '') else 'png'
+                    nombre_archivo_meta = f'portadas/portada_isbn_{isbn}_edicion.{ext}'
+                    
+                    if default_storage.exists(nombre_archivo_meta):
+                        try:
+                            default_storage.delete(nombre_archivo_meta)
+                        except Exception:
+                            pass
+
+                    ruta_guardada_meta = default_storage.save(nombre_archivo_meta, ContentFile(res_img_meta.content))
+                    opciones.append({
+                        'url_preview': default_storage.url(ruta_guardada_meta),
+                        'ruta_relativa': ruta_guardada_meta,
+                        'titulo': 'Portada de Edición (Open Library Books API)'
+                    })
+    except Exception:
+        pass
+
+    if not opciones:
+        return JsonResponse({'encontrado': False, 'error': 'No se encontraron portadas en ningún repositorio de Open Library.'})
+
+    return JsonResponse({
+        'encontrado': True,
+        'opciones': opciones,
+        # Mantener fallback por compatibilidad
+        'url_preview': opciones[0]['url_preview'],
+        'ruta_relativa': opciones[0]['ruta_relativa'],
+    })

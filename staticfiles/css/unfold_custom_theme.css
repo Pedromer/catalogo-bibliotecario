@@ -1,0 +1,282 @@
+/* css/unfold_custom.css */
+
+/* =======================================================
+   1. MODO CLARO (Fondo blanco-cálido rojizo y textos café)
+   ======================================================= */
+:root,
+html:not(.dark) {
+    /* Fondos, tablas, sidebar y bordes neutros */
+    --color-gray-50: 252 248 248 !important;   /* Fondo general (#fcf8f8) */
+    --color-gray-100: 245 237 237 !important;  /* Fondos hover / secundarios */
+    --color-gray-200: 240 226 226 !important;  /* Bordes suaves (#f0e2e2) */
+    --color-gray-300: 228 208 208 !important;  /* Bordes de inputs / divisores */
+    --color-gray-400: 205 178 178 !important;
+    --color-gray-500: 168 135 135 !important;
+    --color-gray-600: 139 100 100 !important;
+    --color-gray-700: 105 69 69 !important;
+    --color-gray-800: 79 48 48 !important;
+    --color-gray-900: 59 30 30 !important;
+    --color-gray-950: 38 17 18 !important;
+
+    /* Tipografía */
+    --color-font-950: 38 17 18 !important;
+    --color-font-900: 59 30 30 !important;     /* Texto principal (#3b1e1e) */
+    --color-font-800: 79 48 48 !important;
+    --color-font-700: 105 69 69 !important;
+    --color-font-600: 139 100 100 !important;  /* Texto muted (#8b6464) */
+    --color-font-500: 168 135 135 !important;
+}
+
+/* Forzado directo de superficies base en tema claro */
+html:not(.dark) body,
+html:not(.dark) [class*="bg-base-50"],
+html:not(.dark) [class*="bg-gray-50"] {
+    background-color: rgb(252, 248, 248) !important;
+}
+
+
+/* =======================================================
+   2. MODO OSCURO (Bordes sutiles integrados con el fondo)
+   ======================================================= */
+html.dark {
+    /* Fondos y superficies */
+    --color-gray-950: 21 8 8 !important;      /* Fondo base (#150808) */
+    --color-gray-900: 30 12 13 !important;     /* Tarjetas */
+    --color-gray-800: 38 15 16 !important;     /* Inputs*/
+    
+    --color-gray-700: 48 18 20 !important;     /* Bordes principales */
+    --color-gray-600: 62 24 26 !important;     /* Bordes de inputs / hovers */
+    --color-gray-500: 85 34 37 !important;
+    --color-gray-400: 168 135 135 !important;
+    --color-gray-300: 205 178 178 !important;
+    --color-gray-200: 228 208 208 !important;
+    --color-gray-100: 245 237 237 !important;
+    --color-gray-50: 252 248 248 !important;
+
+    /* Tipografía */
+    --color-font-50: 252 248 248 !important;
+    --color-font-100: 245 237 237 !important;
+    --color-font-200: 228 208 208 !important;
+    --color-font-300: 205 178 178 !important;
+    --color-font-400: 168 135 135 !important;
+    --color-font-500: 139 100 100 !important;
+}
+
+/* Forzado directo de superficies en modo oscuro */
+html.dark body,
+html.dark [class*="bg-base-950"],
+html.dark [class*="bg-gray-950"] {
+    background-color: rgb(21, 8, 8) !important;
+}
+
+html.dark [class*="bg-base-900"],
+html.dark [class*="bg-gray-900"],
+html.dark aside,
+html.dark nav,
+html.dark table {
+    background-color: rgb(30, 12, 13) !important;
+}
+
+html.dark *,
+html.dark [class*="border-gray-"],
+html.dark [class*="border-base-"],
+html.dark [class*="divide-gray-"],
+html.dark [class*="divide-base-"] {
+    border-color: rgb(48, 18, 20) !important;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea,
+html.dark [class*="ring-gray-"],
+html.dark [class*="ring-base-"] {
+    border-color: rgb(55, 20, 22) !important;
+    --tw-ring-color: rgb(55, 20, 22) !important;
+}
+
+/* =======================================================
+   3. CORRECCIONES PARA SELECT2 (AUTORES / BUSCADORES)
+   ======================================================= */
+
+/* --- CORRECCIÓN ERROR GENERAL: Ocultar el select nativo azul de Django --- */
+select[data-select2-id],
+.select2-hidden-accessible {
+    display: none !important;
+    visibility: hidden !important;
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* --- MODO OSCURO: Desplegable de búsqueda (Dropdown) --- */
+
+html.dark .select2 {
+    background-color: rgb(30, 12, 13) !important; /* Mismo fondo rojizo que las tarjetas */
+    border-color: rgb(48, 18, 20) !important;     /* Borde sutil integrado */
+    color: rgb(252, 248, 248) !important;
+}
+
+html.dark .select2-dropdown {
+    background-color: rgb(30, 12, 13) !important; /* Mismo fondo rojizo que las tarjetas */
+    border-color: rgb(48, 18, 20) !important;     /* Borde sutil integrado */
+    color: rgb(252, 248, 248) !important;
+}
+
+/* Caja de texto de búsqueda interna del desplegable */
+html.dark .select2-dropdown .select2-search__field {
+    background-color: rgb(21, 8, 8) !important;  /* Fondo base más oscuro */
+    border-color: rgb(55, 20, 22) !important;
+    color: rgb(252, 248, 248) !important;
+}
+
+/* Opciones del listado (Resultados) */
+html.dark .select2-results__option {
+    background-color: rgb(30, 12, 13) !important;
+    color: rgb(205, 178, 178) !important;        /* Texto secundario suavizado */
+}
+
+/* Opción seleccionada o con el cursor encima (Hover) */
+html.dark .select2-results__option--highlighted[aria-selected],
+html.dark .select2-results__option[aria-selected="true"] {
+    background-color: rgb(55, 20, 22) !important; /* Rojo acento oscuro */
+    color: rgb(252, 248, 248) !important;        /* Texto blanco-rojizo brillante */
+}
+
+/* =======================================================
+   COLOR DE LAS ETIQUETAS SELECCIONADAS EN SELECT2
+   ======================================================= */
+
+/* Cambiar el fondo de la etiqueta y su borde en modo oscuro */
+html.dark .select2-container--unfold .select2-selection--multiple .select2-selection__choice,
+html.dark [class*="select2-selection__choice"] {
+    background-color: rgb(55, 22, 23) !important; /* Rojo sutil para destacar la etiqueta */
+    border-color: rgb(75, 28, 30) !important;     /* Borde un poco más claro */
+    color: rgb(252, 248, 248) !important;        /* Color del texto */
+}
+
+/* Cambiar el color del botón de eliminar (la 'x') al pasar el cursor (Hover) */
+html.dark .select2-container--unfold .select2-selection--multiple .select2-selection__choice__remove:hover {
+    background-color: rgb(100, 35, 38) !important; /* Rojo más vivo al hacer hover en la X */
+    color: rgb(252, 248, 248) !important;
+}
+
+/* Mantener el diseño limpio del botón de eliminar original */
+html.dark .select2-selection__choice__remove {
+    color: rgb(205, 178, 178) !important;
+    border-right-color: rgb(75, 28, 30) !important;
+}
+
+
+
+/* --- MODO CLARO: Desplegable de búsqueda (Dropdown) --- */
+html:not(.dark) .select2-dropdown {
+    background-color: #ffffff !important;
+    border-color: rgb(228, 208, 208) !important;
+    color: rgb(59, 30, 30) !important;
+}
+
+html:not(.dark) .select2-dropdown .select2-search__field {
+    background-color: rgb(252, 248, 248) !important;
+    border-color: rgb(228, 208, 208) !important;
+    color: rgb(59, 30, 30) !important;
+}
+
+html:not(.dark) .select2-results__option {
+    background-color: #ffffff !important;
+    color: rgb(79, 48, 48) !important;
+}
+
+html:not(.dark) .select2-results__option--highlighted[aria-selected],
+html:not(.dark) .select2-results__option[aria-selected="true"] {
+    background-color: rgb(245, 237, 237) !important; /* Fondo claro hover */
+    color: rgb(59, 30, 30) !important;
+}
+
+
+/* --- TEMA CLARO (Ajuste de Autores) --- */
+html:not(.dark) .select2-container--unfold .select2-selection,
+html:not(.dark) .select2-container--unfold .select2-selection--multiple {
+    background-color: #ffffff !important;
+    border-color: rgb(228, 208, 208) !important; /* #e4d0d0 */
+}
+
+/* Color del texto dentro del autocompletado claro */
+html:not(.dark) .select2-container--unfold .select2-selection__rendered,
+html:not(.dark) .select2-container--unfold .select2-search__field {
+    color: rgb(59, 30, 30) !important; /* Texto principal #3b1e1e */
+}
+
+/* =======================================================
+   5. ELIMINACIÓN REAL DEL BORDE AZULADO DEL DASHBOARD
+   ======================================================= */
+
+/* Forzar las variables nativas que Unfold usa para pintar bordes en componentes del Home */
+html.dark, 
+html.dark :root,
+html.dark [class*="bg-neutral-"] {
+    --color-neutral-800: 48 18 20 !important;   /* Cambia el azul por tu rojo sutil */
+    --color-neutral-700: 62 24 26 !important;   /* Bordes secundarios */
+    --tw-ring-color: rgb(48 18 20) !important;  /* Intercepta el anillo de Tailwind */
+}
+
+/* Forzado estricto sobre las tarjetas del dashboard (App containers) */
+html.dark main #content div,
+html.dark main section,
+html.dark .overflow-hidden.rounded-md {
+    border-color: rgb(48, 18, 20) !important;
+    box-shadow: 0 0 0 1px rgb(48, 18, 20) !important; /* Reemplaza la sombra azul por una roja */
+    --tw-ring-shadow: 0 0 0 1px rgb(48, 18, 20) !important;
+}
+
+
+/* =======================================================
+   6. RECUADRO ROJIZO SUTIL EXCLUSIVO DEL DASHBOARD
+   ======================================================= */
+
+/* 1. Cambiar el fondo del recuadro contenedor exterior (levemente más claro que el fondo) */
+html.dark div.dark\:bg-base-800 {
+    background-color: rgb(56, 22, 24) !important;
+}
+
+/* 2. Cambiar el color del borde exterior de la tabla a un rojo sutil */
+html.dark table.dark\:border-base-800 {
+    border-color: rgb(55, 22, 23) !important;
+}
+
+/* 3. Cambiar las líneas divisorias horizontales internas de esta tabla específica */
+html.dark table.dark\:border-base-800 tr th.dark\:border-base-800,
+html.dark table.dark\:border-base-800 tr td.dark\:border-base-800 {
+    border-color: rgb(48, 18, 20) !important;
+}
+
+
+/* =======================================================
+   8. FORZADO COLOR BLANCO DEFINITIVO PARA TRIX EDITOR
+   ======================================================= */
+
+/* 1. Limpiar los iconos nativos de Trix y forzar color blanco brillante */
+html.dark trix-toolbar button,
+html.dark trix-toolbar .trix-button,
+html.dark .trix-button::before {
+    color: rgb(255, 255, 255) !important;
+    opacity: 1 !important;
+}
+
+/* 2. Interceptar las imágenes e iconos internos de Trix para teñirlos de blanco */
+html.dark trix-toolbar button::before {
+    filter: brightness(0) invert(1) !important; /* El truco mágico: invierte el color oscuro original a blanco puro */
+}
+
+/* 3. Evitar duplicación de bordes o contornos inflados */
+html.dark trix-toolbar button {
+    border: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* 4. Cambiar el color de fondo cuando pasas el mouse por encima (Hover) */
+html.dark trix-toolbar button:hover,
+html.dark trix-toolbar button.trix-active {
+    background-color: rgb(55, 22, 23) !important; /* Tu rojo sutil para indicar selección */
+}

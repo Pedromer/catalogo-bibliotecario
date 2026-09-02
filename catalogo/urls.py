@@ -9,7 +9,8 @@ urlpatterns = [
     path('libro/<int:pk>/',        views.detalle_libro,    name='detalle_libro'),
 
     # ── Gestión (solo bibliotecarios) ─────────────────────────
-    path('gestion/agregar/',           views.agregar_libro,   name='agregar_libro'),
-    path('gestion/editar/<int:pk>/',   views.editar_libro,   name='editar_libro'),
-    path('gestion/baja/<int:pk>/',     views.eliminar_libro, name='eliminar_libro'),
+    path('gestion-interna/buscar-portada/', views.buscar_portada_isbn, name='buscar_portada_isbn'),
+    path('gestion-interna/agregar/',           views.agregar_libro,   name='agregar_libro'),
+    path('gestion-interna/editar/<int:pk>/',   views.editar_libro,   name='editar_libro'),
+    path('gestion-interna/baja/<int:pk>/',     views.eliminar_libro, name='eliminar_libro'),
 ]

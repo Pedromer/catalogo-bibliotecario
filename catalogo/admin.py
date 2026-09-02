@@ -13,7 +13,7 @@ from unfold.forms import AdminPasswordChangeForm, UserChangeForm
 from unfold.forms import UserCreationForm as UnfoldUserCreationForm
 
 
-# --- Personalización del Widget de Quill para Unfold/Tailwind ---
+# -- Personalización del Widget --
 class FixedQuillWidget(QuillWidget):
     def render(self, name, value, attrs=None, renderer=None):
         html = super().render(name, value, attrs, renderer)
@@ -132,6 +132,15 @@ class EditorialAdmin(ModelAdmin):
 class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
     form = LibroAdminForm
 
+    def save_model(self, request, obj, form, change):
+        portada_precargada = request.POST.get('portada_precargada', '').strip()
+        
+        # Si se seleccionó una portada descargada y el input nativo quedó vacío
+        if portada_precargada and not request.FILES.get('portada'):
+            obj.portada = portada_precargada
+
+        super().save_model(request, obj, form, change)
+
     # Columnas visibles en la lista de libros
     list_display = [
         'titulo', 'get_autores', 'categoria',
@@ -176,12 +185,16 @@ class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
         css = {
             'all': (
                 'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css',
+                'catalogo/css/buscar_portada.css',
+                'catalogo/css/image_cropper.css',
+                'catalogo/css/unfold_custom_theme.css',
             )
         }
         js = (
             'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js',
-            'js/image_cropper.js',
-            'js/select2_custom_add.js',
+            'catalogo/js/image_cropper.js',
+            'catalogo/js/select2_custom_add.js',
+            'catalogo/js/buscar_portada.js',
         )
 
 

@@ -41,19 +41,10 @@
                 --crop-accent-bg: #591e8a !important;
             }
 
-            /* Contenedor exterior para mantener barra y botón juntos por fuera */
-            .unfold-crop-outer-wrap {
-                display: inline-flex !important;
-                align-items: center !important;
-                gap: 8px !important;
-                width: auto !important;
-                max-width: 100% !important;
-                vertical-align: middle !important;
-            }
-
-            /* Botón disparador exterior */
+            /* Botón disparador cuadrado adyacente (estilo botón de acción Unfold) */
             .unfold-crop-trigger-btn {
                 display: none;
+                margin-left: 8px;
                 height: 38px;
                 min-width: 38px;
                 width: 38px;
@@ -68,6 +59,7 @@
                 transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
                 white-space: nowrap;
                 flex-shrink: 0;
+                align-self: center;
                 box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             }
             .unfold-crop-trigger-btn:hover {
@@ -251,7 +243,7 @@
         }
     }
 
-    // 3. Configurar campos de formulario insertando el botón FUERA de la barra pero a su lado
+    // 3. Configurar campos de formulario e insertar el botón JUSTO AL LADO
     function setupImageField(fieldName) {
         injectThemeStyles();
         const input = document.querySelector(`input[type="file"][name="${fieldName}"]`);
@@ -261,41 +253,34 @@
 
         const container = input.closest('.form-row') || input.closest('div') || input.parentElement;
 
-        // Crear el botón
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'unfold-crop-trigger-btn';
         btn.title = `Ajustar / Recortar ${fieldName}`;
         btn.setAttribute('aria-label', `Ajustar / Recortar ${fieldName}`);
         btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:18px; line-height:1;">crop</span>`;
+        
         input._cropBtn = btn;
 
-        // Identificar el bloque exterior completo que forma la "barra" del archivo
+        // Localizar el elemento que contiene la barra/enlace del archivo
         const existingLink = container.querySelector('a[href*="http"], a[href*="media"], a[href*="cloudinary"], a[href*="image"]');
         
-        // Obtenemos el bloque de la barra visible completa
-        const fileBarBlock = existingLink
-            ? (existingLink.closest('.flex, .border, p, div') || existingLink.parentElement)
+        // Elemento ancla objetivo (la barra visible o el wrapper del input)
+        const targetElement = existingLink 
+            ? (existingLink.closest('p, div, span') || existingLink)
             : (input.closest('.flex, .relative, div') || input);
 
-        // Envolver la barra completa y el botón en un contenedor inline conjunto
-        if (fileBarBlock && fileBarBlock.parentElement) {
-            let outerWrap = fileBarBlock.parentElement.classList.contains('unfold-crop-outer-wrap')
-                ? fileBarBlock.parentElement
-                : null;
-
-            if (!outerWrap) {
-                outerWrap = document.createElement('div');
-                outerWrap.className = 'unfold-crop-outer-wrap';
-                fileBarBlock.parentNode.insertBefore(outerWrap, fileBarBlock);
-                outerWrap.appendChild(fileBarBlock);
-            }
-            
-            // Insertar el botón a la derecha por fuera de la barra
-            outerWrap.appendChild(btn);
-        } else {
-            input.insertAdjacentElement('afterend', btn);
+        // Asegurar que el padre inmediato fluya en fila sin separar los elementos
+        const parentOfTarget = targetElement.parentElement;
+        if (parentOfTarget) {
+            parentOfTarget.style.display = 'flex';
+            parentOfTarget.style.alignItems = 'center';
+            parentOfTarget.style.flexWrap = 'nowrap';
+            parentOfTarget.style.width = 'fit-content';
         }
+
+        // Inyectar el botón inmediatamente después del elemento sin crear huecos
+        targetElement.insertAdjacentElement('afterend', btn);
 
         if (existingLink && existingLink.href) {
             btn.dataset.imgSrc = existingLink.href;
@@ -303,7 +288,7 @@
             btn.style.display = 'inline-flex';
         }
 
-        // Detectar si se sube una nueva imagen desde el explorador
+        // Si se sube una nueva imagen desde el explorador de archivos
         input.addEventListener('change', function (e) {
             const files = e.target.files;
             if (files && files.length > 0) {

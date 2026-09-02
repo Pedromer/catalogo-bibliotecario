@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const btnList = document.getElementById('btn-list');
     const contenedor = document.getElementById('contenedor-libros');
 
-    // Estas son las clases de Bootstrap que controlan el grid original
+    // clases de Bootstrap que controlan el grid original
     const gridClasses = ['row-cols-2', 'row-cols-sm-3', 'row-cols-md-4', 'row-cols-lg-5'];
 
     function setView(viewType) {

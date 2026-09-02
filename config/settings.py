@@ -1,6 +1,5 @@
 """
-Django settings for config project.
-Optimizado para Vercel + Supabase
+Optimizado para vercel + supabase + cloudnary
 """
 
 from pathlib import Path
@@ -9,6 +8,7 @@ from decouple import config
 import dj_database_url
 import cloudinary
 from django.templatetags.static import static
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -129,7 +129,6 @@ AXES_COOLOFF_TIME = 0.5           # Tiempo de bloqueo en horas (0.5 = 30 minutos
 AXES_RESET_ON_SUCCESS = True      # Si inicia sesión correctamente, resetea el contador
 AXES_LOCKOUT_TEMPLATE = None      # Opcional: ruta a un HTML personalizado para el bloqueo
 
-# Crucial para Vercel / Proxies inversos:
 # Permite a Axes leer la IP real del cliente desde las cabeceras HTTP de Vercel
 AXES_PROXY_COUNT = 1
 AXES_META_PRECEDENCE_ORDER = [
@@ -204,13 +203,31 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 UNFOLD = {
     "SCRIPTS": [
         lambda request: "https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js",
-        lambda request: static("js/select2_custom_add.js"),
-        lambda request: static("js/image_cropper.js"),
+        lambda request: static("catalogo/js/select2_custom_add.js"),
+        lambda request: static("catalogo/js/image_cropper.js"),
     ],
     "STYLES": [
         lambda request: "https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css",
+        lambda request: static("catalogo/css/image_cropper.css"),
+        lambda request: static("catalogo/css/unfold_custom_theme.css"),
     ],
+    "COLORS": {
+        "primary": {
+            "50": "254 242 242",
+            "100": "254 226 226",
+            "200": "254 202 202",
+            "300": "252 165 165",
+            "400": "239 68 68",
+            "500": "200 16 16",
+            "600": "163 0 0",
+            "700": "138 0 0",
+            "800": "105 0 0",
+            "900": "74 4 4",
+            "950": "45 2 2",
+        },
+    },
 }
+
 
 # Seguridad en Producción
 if not DEBUG:
