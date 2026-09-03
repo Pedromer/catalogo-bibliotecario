@@ -1,0 +1,22 @@
+<div id="cropper-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:99999; align-items:center; justify-content:center; padding:1rem;">
+    <div class="unfold-crop-modal-card" style="border-radius:8px; max-width:650px; width:100%; overflow:hidden; display:flex; flex-direction:column; max-height:90vh; box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
+        <div class="unfold-crop-header" style="padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+            <h6 id="cropper-modal-title" style="margin:0; font-weight:600;">Encuadre y Recorte</h6>
+            <span id="close-cropper-x" style="cursor:pointer; font-size:20px;">&times;</span>
+        </div>
+        <div style="padding:16px; flex:1; max-height:60vh; display:flex; justify-content:center; align-items:center; overflow:hidden;">
+            <img id="image-to-crop" style="max-width:100%; max-height:100%; display:block;" />
+        </div>
+        <div class="unfold-crop-footer" style="padding:12px 16px; display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center;">
+            <div style="display:flex; gap:6px;">
+                <button type="button" class="unfold-crop-ratio-btn" data-ratio="0.666">Libro (2:3)</button>
+                <button type="button" class="unfold-crop-ratio-btn" data-ratio="0.75">Estándar (3:4)</button>
+                <button type="button" class="unfold-crop-ratio-btn" data-ratio="NaN">Libre</button>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button type="button" id="cancel-crop-btn" class="unfold-crop-cancel-btn">Cancelar</button>
+                <button type="button" id="apply-crop-btn" style="padding:6px 14px; border:none; background:#10b981; color:#fff; font-weight:600; border-radius:6px; cursor:pointer; font-size:13px;">Guardar Encuadre</button>
+            </div>
+        </div>
+    </div>
+</div>

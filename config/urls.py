@@ -11,10 +11,10 @@ ADMIN_URL = os.environ.get('DJANGO_ADMIN_URL', 'gestion-interna/')
 if not ADMIN_URL.endswith('/'):
     ADMIN_URL += '/'
 
-# 3. Rutas principales
+# 3. Rutas principales (catalogo PRIMERO para que capture sus propias rutas)
 urlpatterns = [
-    path(ADMIN_URL, admin.site.urls),
     path('', include('catalogo.urls')),
+    path(ADMIN_URL, admin.site.urls),
 ]
 
 # 4. Servir archivos multimedia solo durante desarrollo local
