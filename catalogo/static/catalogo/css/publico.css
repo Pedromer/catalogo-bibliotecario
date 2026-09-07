@@ -369,7 +369,7 @@ body {
 
 .detalle-portada {
     width: 100%;
-    max-width: 380px;              
+    max-width: 340px;              
     aspect-ratio: 2 / 3;
     margin: 0 auto 1.5rem auto; 
     border-radius: var(--radius);
