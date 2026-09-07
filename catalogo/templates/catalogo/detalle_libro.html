@@ -8,29 +8,20 @@
 <meta property="og:type" content="book" />
 <meta property="og:title" content="{{ libro.titulo }}" />
 
-<!-- Forzar texto plano simple para evitar que el JSON de Quill rompa el parser -->
-<meta property="og:description" content="{% if libro.descripcion %}{{ libro.descripcion.html|default:libro.descripcion|striptags|truncatewords:15 }}{% else %}Consultá este libro en el catálogo de la Biblioteca ESET-UNQ{% endif %}" />
+<!-- Descripción limpia: si hay HTML/JSON se extrae solo texto plano y sin saltos que rompan la etiqueta -->
+<meta property="og:description" content="{% if libro.descripcion.html %}{{ libro.descripcion.html|striptags|truncatewords:20 }}{% elif libro.descripcion %}{{ libro.descripcion|striptags|truncatewords:20 }}{% else %}Consultá este libro en el catálogo de la Biblioteca ESET-UNQ{% endif %}" />
 
 <meta property="og:url" content="{{ request.build_absolute_uri }}" />
 
 {% if libro.portada %}
-    {# Inyectamos transformación de Cloudinary para reducir peso y forzar JPG #}
-    {# w_400,h_400,c_fill asegura una imagen cuadrada ligera perfecta para el Estado #}
-    {% with url_optimizada=libro.portada.url|cut:"/upload/" %}
-        <meta property="og:image" content="https://res.cloudinary.com/{{ url_optimizada|add:'/upload/w_400,h_400,c_fill,q_auto,f_jpg/' }}" />
-        <meta property="og:image:secure_url" content="https://res.cloudinary.com/{{ url_optimizada|add:'/upload/w_400,h_400,c_fill,q_auto,f_jpg/' }}" />
-    {% endwith %}
-
+    <!-- URL directa de Cloudinary (sin manipulaciones de strings en el template) -->
+    <meta property="og:image" content="{{ libro.portada.url }}" />
+    <meta property="og:image:secure_url" content="{{ libro.portada.url }}" />
     <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:width" content="400" />
-    <meta property="og:image:height" content="400" />
-{% endif %}
 
-<!-- Soporte Twitter Card (WhatsApp lo usa como respaldo secundario) -->
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="{{ libro.titulo }}" />
-{% if libro.portada %}
-<meta name="twitter:image" content="{{ libro.portada.url }}" />
+    <!-- Twitter Card: WhatsApp en los estados lo usa de soporte -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:image" content="{{ libro.portada.url }}" />
 {% endif %}
 {% endblock %}
 
