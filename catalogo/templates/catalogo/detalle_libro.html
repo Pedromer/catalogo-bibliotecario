@@ -4,26 +4,33 @@
 
 {% block extra_head %}
 <!-- Open Graph / WhatsApp Preview -->
+<meta property="og:site_name" content="Biblioteca ESET-UNQ" />
 <meta property="og:type" content="book" />
 <meta property="og:title" content="{{ libro.titulo }}" />
 
-<!-- Descripción limpia (sin el JSON crudo de Quill) -->
-{% if libro.descripcion %}
-  <meta property="og:description" content="{{ libro.descripcion.html|default:libro.descripcion|striptags|truncatewords:20 }}" />
-{% else %}
-  <meta property="og:description" content="Consultá este libro en el catálogo de la Biblioteca ESET-UNQ" />
-{% endif %}
+<!-- Forzar texto plano simple para evitar que el JSON de Quill rompa el parser -->
+<meta property="og:description" content="{% if libro.descripcion %}{{ libro.descripcion.html|default:libro.descripcion|striptags|truncatewords:15 }}{% else %}Consultá este libro en el catálogo de la Biblioteca ESET-UNQ{% endif %}" />
 
 <meta property="og:url" content="{{ request.build_absolute_uri }}" />
 
 {% if libro.portada %}
-  {# 1. La URL de Cloudinary directa sin anteponer dominio #}
-  <!-- Forzar tamaño apto para WhatsApp (<300KB y formato JPG) -->
-  <meta property="og:image" content="{{ libro.portada.build_url|default:libro.portada.url }}" />
-  <meta property="og:image:secure_url" content="{{ libro.portada.url }}" />
-  <meta property="og:image:type" content="image/jpeg" />
-  <meta property="og:image:width" content="600" />
-  <meta property="og:image:height" content="800" />
+    {# Inyectamos transformación de Cloudinary para reducir peso y forzar JPG #}
+    {# w_400,h_400,c_fill asegura una imagen cuadrada ligera perfecta para el Estado #}
+    {% with url_optimizada=libro.portada.url|cut:"/upload/" %}
+        <meta property="og:image" content="https://res.cloudinary.com/{{ url_optimizada|add:'/upload/w_400,h_400,c_fill,q_auto,f_jpg/' }}" />
+        <meta property="og:image:secure_url" content="https://res.cloudinary.com/{{ url_optimizada|add:'/upload/w_400,h_400,c_fill,q_auto,f_jpg/' }}" />
+    {% endwith %}
+
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="400" />
+    <meta property="og:image:height" content="400" />
+{% endif %}
+
+<!-- Soporte Twitter Card (WhatsApp lo usa como respaldo secundario) -->
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="{{ libro.titulo }}" />
+{% if libro.portada %}
+<meta name="twitter:image" content="{{ libro.portada.url }}" />
 {% endif %}
 {% endblock %}
 
