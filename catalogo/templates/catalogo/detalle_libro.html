@@ -3,14 +3,13 @@
 {% block titulo %}{{ libro.titulo }} — Biblioteca ESET-UNQ{% endblock %}
 
 {% block extra_head %}
-<!-- Open Graph / WhatsApp Preview -->
+<!-- Open Graph / WhatsApp Preview para este libro puntual -->
 <meta property="og:type" content="book" />
 <meta property="og:title" content="{{ libro.titulo }}" />
 <meta property="og:description" content="{% if libro.descripcion %}{{ libro.descripcion.texto|default:libro.descripcion|striptags|truncatewords:25 }}{% else %}Consultá este libro en el catálogo de la Biblioteca ESET-UNQ{% endif %}" />
 <meta property="og:url" content="{{ request.build_absolute_uri }}" />
 
 {% if libro.portada %}
-    <!-- URL absoluta obligatoria para WhatsApp -->
     <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ libro.portada.url }}" />
     <meta property="og:image:secure_url" content="{{ request.scheme }}://{{ request.get_host }}{{ libro.portada.url }}" />
     <meta property="og:image:type" content="image/jpeg" />
