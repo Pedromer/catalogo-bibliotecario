@@ -125,13 +125,22 @@
 
                         <!-- Portada / Imagen -->
                         <div class="libro-card-media">
+                            
+                            <!-- 1. Fondo difuminado (estático, usa la imagen principal que exista) -->
                             {% if libro.portada %}
-                                <img class="carousel-image active" src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}">
+                                <img class="portada-blur active" src="{{ libro.portada.url }}" aria-hidden="true">
+                            {% elif libro.contraportada %}
+                                <img class="portada-blur active" src="{{ libro.contraportada.url }}" aria-hidden="true">
+                            {% endif %}
+
+                            <!-- 2. Imágenes frontales del carrusel -->
+                            {% if libro.portada %}
+                                <img class="carousel-image portada-frente active" src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}">
                                 {% if libro.contraportada %}
-                                    <img class="carousel-image" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
+                                    <img class="carousel-image portada-frente" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
                                 {% endif %}
                             {% elif libro.contraportada %}
-                                <img class="carousel-image active" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
+                                <img class="carousel-image portada-frente active" src="{{ libro.contraportada.url }}" alt="Contraportada de {{ libro.titulo }}">
                             {% else %}
                                 <div class="sin-portada sin-portada-catalogo">
                                     <span>{{ libro.titulo }} 📖</span>
@@ -140,20 +149,26 @@
                         </div>
 
                         <!-- Cuerpo de la Card -->
-                        <div class="libro-card-body d-flex flex-column flex-grow-1">
+                        <!-- Agregamos p-2 (padding reducido) para sobrescribir cualquier padding previo -->
+                        <div class="libro-card-body d-flex flex-column flex-grow-1 p-3">
                             <!-- Columna 1 -->
                             <div class="libro-info-principal">
-                                <div class="libro-titulo fw-bold">{{ libro.titulo }}</div>
-                                <div class="libro-autores text-muted" style="font-size: 0.9rem;">
+                                <!-- Reducimos tamaño de fuente, line-height (lh-sm) y el margen inferior (mb-1) -->
+                                <div class="libro-titulo fw-bold lh-sm mb-1" style="font-size: 0.95rem;">{{ libro.titulo }}</div>
+                                
+                                <!-- Achicamos la fuente de 0.9rem a 0.8rem, ajustamos line-height y margen -->
+                                <div class="libro-autores text-muted lh-sm mb-1" style="font-size: 0.8rem;">
                                     {% for autor in libro.autores.all %}
                                         {{ autor.nombre }}{% if not forloop.last %}, {% endif %}
                                     {% empty %}
                                         <span class="fst-italic">Autor no especificado</span>
                                     {% endfor %}
                                 </div>
+                                
                                 {% if libro.categoria %}
-                                <div class="mt-2">
-                                    <span class="badge-categoria badge">{{ libro.categoria.nombre }}</span>
+                                <!-- Cambiamos mt-2 por mt-1 o mt-0 para acercar la etiqueta al autor -->
+                                <div class="mt-1">
+                                    <span class="badge-categoria badge py-1 px-2" style="font-size: 0.7rem;">{{ libro.categoria.nombre }}</span>
                                 </div>
                                 {% endif %}
                             </div>
@@ -179,7 +194,7 @@
                                     </p>
                                 {% endif %}
                                 {% if libro.descripcion %}
-                                    <p class="mt-2 text-muted mb-0" style="font-size: 0.85rem; line-height: 1.4;">
+                                    <p class="mt-1 text-muted mb-0" style="font-size: 0.85rem; line-height: 1.3;">
                                         {{ libro.descripcion.plain|safe|truncatewords:28 }}
                                     </p>
                                 {% endif %}

@@ -7,6 +7,7 @@ urlpatterns = [
     # ── Catálogo público (sin login) ──────────────────────────
     path('',                       views.catalogo_publico, name='catalogo_publico'),
     path('libro/<int:pk>/',        views.detalle_libro,    name='detalle_libro'),
+    path('informacion/',           views.informacion,      name='informacion'),
 
     # ── Gestión (solo bibliotecarios) ─────────────────────────
     path('gestion-interna/buscar-portada/', views.buscar_portada_isbn, name='buscar_portada_isbn'),
