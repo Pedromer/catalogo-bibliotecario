@@ -16,10 +16,11 @@ Sistema de gestión de catálogo online desarrollado con Django, diseñado para 
 *   **Frontend:** HTML5, CSS3, Bootstrap
 *   **Plataforma de despliegue optimizada:** Vercel 
 
-## Roadmap (Próximas Mejoras)
+## (Próximas Mejoras)
 
 *   Automatización completa de recolección de metadatos a partir del ingreso del código ISBN.
 *   Motor de búsqueda avanzada con filtrado multicriterio y peticion veloz.
+*   Añadido de campo para datos topograficos en libros.
 
 ## Instalación y configuración local
 
@@ -69,4 +70,16 @@ Este proyecto ha sido desarrollado integramente en sistemas GNU/Linux y no se ha
    ```bash
    python manage.py runserver
    ```
+
+8. Crear superusuario:
+    ```bash
+   python manage.py createsuperuser
+   ```
+
+9. Ingresar al sitio y entrar a django con cuenta de administrador:
+
    El proyecto estará disponible en `http://localhost:8000/`.
+   Por cuestiones de seguridad, no hay referencias a la ruta de administracion salvo que se haya iniciado sesion
+   El administrador Django estará disponible en: `http://localhost:8000/gestion-interna`
+    La ruta de administracion puede ser modificada en el deploy mediante una clave de entorno.
+

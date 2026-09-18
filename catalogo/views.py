@@ -14,6 +14,13 @@ from django.core.files.base import ContentFile
 
 #########################
 
+def informacion(request):
+    """
+    Vista de información general del catálogo. Accesible sin login.
+    """
+    return render(request, 'catalogo/informacion.html')
+
+
 def catalogo_publico(request):
     """
     Vista principal del catálogo. Accesible sin login.

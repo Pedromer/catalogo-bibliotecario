@@ -14,29 +14,24 @@ body {
     background: var(--color-bg);
     color: var(--color-text);
     font-family: 'Inter', system-ui, sans-serif;
-    padding-top: 70px;
+    padding-top:60px;
 }
 
 /* base publica */
 
-/* Transición suave para el icono del botón */
-/* Transición solo para el icono */
 #toggle-filtros .toggle-icon {
     display: inline-block;
     transition: transform 0.3s ease, color 0.3s ease;
 }
 
-/* Hover sobre el icono */
 #toggle-filtros:hover .toggle-icon {
     transform: scale(1.15);
 }
 
-/* Rotación del icono al estar activo */
 #toggle-filtros[aria-expanded="true"] .toggle-icon {
     transform: rotate(90deg);
 }
 
-/* Hover cuando ya está rotado */
 #toggle-filtros[aria-expanded="true"]:hover .toggle-icon {
     transform: rotate(90deg) scale(1.15);
 }
@@ -75,7 +70,7 @@ body {
     padding-right: 1rem;
 }
 
-/* Botón hamburguesa en la navbar */
+/* botón hamburguesa en la navbar */
 .navbar-publica .navbar-toggler {
     border: 1.5px solid rgba(255, 255, 255, 0.4); 
     border-radius: var(--radius);
@@ -109,11 +104,8 @@ body {
     top: 62px;
     z-index: 1020;
     background: var(--color-bg);
-    
-    /* Expande el fondo 12px para que no haya intersecciones visibles */
     margin-left: -12px;
     margin-right: -12px;
-    
     padding: 0.75rem 12px;
     margin-bottom: 1.25rem;
     border-bottom: 1px solid var(--color-border);
@@ -265,12 +257,37 @@ body {
     box-shadow: 0 4px 12px rgba(0,0,0,.12);
 }
 
+/* 1. Asegurar que el contenedor no deje escapar el difuminado */
 .libro-card-media {
     position: relative;
     width: 100%;
     height: 220px;
     background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
+    overflow: hidden; 
+}
+
+/* 2. Estilos para la imagen principal (frente) */
+.libro-card-media img.portada-frente {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 2; /* Se asegura de estar por encima del fondo */
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.35)); /* Sombra para dar volumen y separarla del fondo */
+}
+
+/* 3. Estilos para la imagen de fondo (difuminada) */
+.libro-card-media img.portada-blur {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    filter: blur(2px) brightness(1.25); /* Difumina y oscurece ligeramente para resaltar el texto/portada */
+    transform: scale(1.1); /* Agranda la imagen para ocultar los bordes desteñidos del filtro blur */
+    z-index: 1;
 }
 
 .libro-card-media img {
@@ -359,6 +376,15 @@ body {
 }
 
 /* Página de detalle */
+.contenedor-detalle {
+    width: 100%;
+    max-width: 1800px;
+    max-height: calc(100vh - 70px);
+    margin: 0 auto; 
+    padding: 0 1rem;
+    transform-origin: center top;
+}
+
 .detalle-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -367,42 +393,54 @@ body {
     padding: 2rem;
 }
 
+/* 3. Media queries para comprimir el padding y los tamaños en notebooks y monitores pequeños */
+@media (max-width: 991.98px), (max-height: 800px) {
+    /* Si la pantalla es angosta o tiene poco espacio vertical (ej: notebooks 1366x768) */
+    .detalle-card {
+        padding: 1.5rem; /* Reducimos el padding interno para ganar espacio */
+    }
+    
+    .detalle-portada {
+        max-width: 260px; /* Achicamos el tamaño base de la portada */
+    }
+    
+}
+
+@media (max-width: 767.98px) {
+    /* Para móviles */
+    .detalle-card {
+        padding: 1.25rem;
+    }
+}
+
 .detalle-portada {
-    width: 100%;
-    max-width: 340px;              
-    aspect-ratio: 2 / 3;
-    margin: 0 auto 1.5rem auto; 
-    border-radius: var(--radius);
-    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    max-width: 340px;
+    max-height: 65vh; /* NUEVO: La imagen nunca superará el 50% del alto de la pantalla */
+    aspect-ratio: 2 / 3;
+    margin: 0 auto 1.5rem; 
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform .2s ease;
+}
+
+.detalle-portada:hover {
+    transform: translateY(-4px);
 }
 
 .detalle-portada img {
     width: 100%;
     height: 100%;
-    max-width: 100%;
-    max-height: 100%;
     display: block;
-    margin: 0;
-    border: none;
-    border-radius: 0;
     object-fit: contain;            
-    object-position: center;
-}
-
-.detalle-portada:hover {
-    transform: translateY(-4px);
-    transition: transform .20s ease;
-    transform-origin: center;
 }
 
 .detalle-portada .sin-portada {
     width: 100%;
     height: 100%;
-    margin: 0;
-    border: none;
     background: var(--color-bg);
 }
 
@@ -419,9 +457,26 @@ body {
     margin-bottom: .75rem;
 }
 
+@media (min-width: 719px) {
+    .btn-share-native {
+        display: none;
+    }
+}
+
+
 /* ==========================================================================
    --- VISTA DE LISTA ---
    ========================================================================== */
+
+/* Ocultar completamente la imagen de fondo difuminada en la lista */
+#contenedor-libros.vista-lista .libro-card-media img.portada-blur {
+    display: none !important;
+}
+
+/* Quitar la sombra 3D de la imagen principal para que vuelva a su diseño original en la lista */
+#contenedor-libros.vista-lista .libro-card-media img.portada-frente {
+    filter: none !important;
+}
 
 /* Columnas al 100% de ancho */
 #contenedor-libros.vista-lista .col {
