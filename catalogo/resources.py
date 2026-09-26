@@ -286,7 +286,7 @@ class LibroResource(resources.ModelResource):
 
     publicacion = fields.Field(
         column_name='Publicacion',
-        attribute='anio_publicacion'
+        attribute='publicacion'
     )
 
     descripcion = fields.Field(
@@ -622,7 +622,7 @@ class LibroResource(resources.ModelResource):
 
                     changed = True
 
-        if not instance.anio_publicacion:
+        if not instance.publicacion:
 
             publicacion_value = self.fields[
                 'publicacion'
@@ -632,7 +632,7 @@ class LibroResource(resources.ModelResource):
             )
 
             if publicacion_value is not None:
-                instance.anio_publicacion = publicacion_value
+                instance.publicacion = publicacion_value
                 changed = True
 
         descripcion_value = row.get(
@@ -1097,7 +1097,7 @@ class LibroResource(resources.ModelResource):
         )
 
     def dehydrate_publicacion(self, libro):
-        return libro.anio_publicacion or ''
+        return libro.publicacion or ''
 
     def dehydrate_descripcion(self, libro):
 

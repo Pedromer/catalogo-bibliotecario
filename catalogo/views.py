@@ -48,7 +48,7 @@ def catalogo_publico(request):
         libros = libros.filter(categoria__id=categoria_id)
 
     # 5. Filtro de orden
-    if orden in ['titulo', '-titulo', 'anio_publicacion', '-anio_publicacion', 'autor', '-autor']:
+    if orden in ['titulo', '-titulo', 'publicacion', '-publicacion', 'autor', '-autor']:
         if orden in ['autor', '-autor']:
             # Anotamos el primer autor (alfabéticamente)
             libros = libros.annotate(primer_autor=Min('autores__nombre'))
@@ -182,8 +182,8 @@ def buscar_portada_isbn(request):
                     urls_registradas.add(img_url)
                     editorial = vol.get('publisher', '')
                     tit = vol.get('title', 'Edición')
-                    anio = vol.get('publishedDate', '')[:4] if vol.get('publishedDate') else ''
-                    detalles = [d for d in [editorial, anio] if d]
+                    publicacion = vol.get('publishedDate', '')[:4] if vol.get('publishedDate') else ''
+                    detalles = [d for d in [editorial, publicacion] if d]
                     etiqueta = f"{tit} ({' - '.join(detalles)})" if detalles else tit
 
                     opciones.append({

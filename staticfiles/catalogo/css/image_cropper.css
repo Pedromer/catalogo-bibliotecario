@@ -1,0 +1,175 @@
+/* =======================================================
+   1. PALETAS DE COLORES ADAPTADAS (ROJO/CAFÉ)
+   ======================================================= */
+
+:root {
+    /* Variables Base de tu nueva paleta (Modo Claro) */
+    --color-primary: #a30000;
+    --color-primary-dk: #8a0000;
+    --color-bg: #fcf8f8;
+    --color-surface: #ffffff;
+    --color-border: #f0e2e2;
+    --color-text: #3b1e1e;
+    --color-muted: #8b6464;
+    --radius: 0.5rem;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05); 
+
+    /* Mapeo del Plugin de Recorte a la Paleta Clara */
+    --crop-bg-modal: var(--color-surface);     /* Blanco puro #ffffff */
+    --crop-bg-header: var(--color-bg);         /* Fondo claro-rojizo #fcf8f8 */
+    --crop-bg-footer: var(--color-bg);         /* Fondo claro-rojizo #fcf8f8 */
+    --crop-border: var(--color-border);        /* Borde suave #f0e2e2 */
+    --crop-text-main: var(--color-text);       /* Texto café #3b1e1e */
+    --crop-text-muted: var(--color-muted);     /* Texto muted #8b6464 */
+    --crop-btn-bg: var(--color-surface);       /* Fondo botón blanco */
+    --crop-btn-hover: var(--color-bg);         /* Hover claro-rojizo */
+    --crop-accent: var(--color-primary);       /* Rojo acento principal #a30000 */
+    --crop-accent-bg: #fef2f2;                 /* Rojo ultra-claro suave para fondo activo (Tailwind red-50) */
+}
+
+html.dark,
+body.dark,
+[data-theme="dark"] {
+    /* Mapeo del Plugin de Recorte a la Paleta Oscura (Rojizo/Vino) */
+    --crop-bg-modal: #1e0c0d !important;       /* Fondo de tus tarjetas (#1e0c0d) */
+    --crop-bg-header: #150808 !important;      /* Fondo base de tu app (#150808) */
+    --crop-bg-footer: #150808 !important;      /* Fondo base de tu app (#150808) */
+    --crop-border: #301214 !important;         /* Tus bordes sutiles rojo oscuro */
+    --crop-text-main: #fcf8f8 !important;      /* Texto blanco-rojizo brillante */
+    --crop-text-muted: #a88787 !important;     /* Texto secundario suavizado */
+    --crop-btn-bg: #260f10 !important;         /* Fondo de botones en modo oscuro (Recuadro sutil) */
+    --crop-btn-hover: #371416 !important;      /* Hover de botones un poco más claro */
+    --crop-accent: #ef4444 !important;         /* Rojo brillante para acentos en modo oscuro (Tailwind red-500) */
+    --crop-accent-bg: #451012 !important;      /* Rojo vino oscuro para fondo de botones activos */
+}
+
+/* =======================================================
+   2. COMPONENTES Y BOTONES DEL PLUGIN DE RECORTE
+   ======================================================= */
+
+.unfold-crop-field-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+}
+
+.unfold-crop-trigger-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+.unfold-crop-trigger-btn {
+    display: none;
+    height: 38px;
+    min-width: 38px;
+    width: 38px;
+    padding: 0;
+    border-radius: var(--radius);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--crop-btn-bg);
+    color: var(--crop-accent);
+    border: 1px solid var(--crop-border);
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
+    box-shadow: var(--shadow);
+}
+
+input[name$="-clear"],
+.django-clear-widget-hidden input[type="checkbox"] {
+    width: 0 !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+.django-clear-widget-hidden {
+    color :#db0808;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0px !important;
+    margin-left: 7px !important;
+    width: 16px !important;
+    visibility: visible !important;
+    font-size: 0 !important;
+}
+
+
+.django-clear-widget-hidden .btn-eliminar-imagen svg {
+    display: block !important;
+    width: 16px !important;
+    height: 16px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.unfold-crop-trigger-btn:hover {
+    background-color: var(--crop-btn-hover);
+    border-color: var(--crop-accent);
+}
+
+.unfold-crop-modal-card {
+    background-color: var(--crop-bg-modal);
+    border: 1px solid var(--crop-border);
+    color: var(--crop-text-main);
+}
+
+.unfold-crop-header {
+    background-color: var(--crop-bg-header);
+    border-bottom: 1px solid var(--crop-border);
+}
+
+.unfold-crop-footer {
+    background-color: var(--crop-bg-footer);
+    border-top: 1px solid var(--crop-border);
+}
+
+.unfold-crop-ratio-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--radius);
+    cursor: pointer;
+    background-color: var(--crop-btn-bg);
+    color: var(--crop-text-main);
+    border: 1px solid var(--crop-border);
+}
+
+.unfold-crop-ratio-btn.active {
+    background-color: var(--crop-accent-bg) !important;
+    color: var(--crop-accent) !important;
+    border-color: var(--crop-accent) !important;
+    font-weight: 600;
+}
+
+.unfold-crop-cancel-btn {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--radius);
+    cursor: pointer;
+    background-color: var(--crop-btn-bg);
+    color: var(--crop-text-main);
+    border: 1px solid var(--crop-border);
+}
+
+.unfold-crop-cancel-btn:hover {
+    background-color: var(--crop-btn-hover);
+}

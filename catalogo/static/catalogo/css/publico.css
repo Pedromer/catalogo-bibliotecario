@@ -379,7 +379,6 @@ body {
 .contenedor-detalle {
     width: 100%;
     max-width: 1800px;
-    max-height: calc(100vh - 70px);
     margin: 0 auto; 
     padding: 0 1rem;
     transform-origin: center top;

@@ -252,31 +252,38 @@ html.dark table.dark\:border-base-800 tr td.dark\:border-base-800 {
 
 
 /* =======================================================
-   8. FORZADO COLOR BLANCO DEFINITIVO PARA TRIX EDITOR
+   8. FORZADO DE COLOR BLANCO EXCLUSIVO PARA QUILL EDITOR
    ======================================================= */
 
-/* 1. Limpiar los iconos nativos de Trix y forzar color blanco brillante */
-html.dark trix-toolbar button,
-html.dark trix-toolbar .trix-button,
-html.dark .trix-button::before {
-    color: rgb(255, 255, 255) !important;
-    opacity: 1 !important;
+/* 1. Cambiar el color de los textos directos (como H1, H2) dentro de los botones */
+html.dark .ql-toolbar button,
+html.dark .ql-toolbar .ql-picker {
+    color: rgb(252, 248, 248) !important;
 }
 
-/* 2. Interceptar las imágenes e iconos internos de Trix para teñirlos de blanco */
-html.dark trix-toolbar button::before {
-    filter: brightness(0) invert(1) !important; /* El truco mágico: invierte el color oscuro original a blanco puro */
+/* 2. Forzar que las líneas y trazos de los iconos SVG pasen a blanco puro */
+html.dark .ql-toolbar button stroke,
+html.dark .ql-toolbar button .ql-stroke,
+html.dark .ql-toolbar button [class*="stroke"] {
+    stroke: rgb(252, 248, 248) !important;
+    stroke-width: 2px !important; /* Mantiene la definición original del icono */
 }
 
-/* 3. Evitar duplicación de bordes o contornos inflados */
-html.dark trix-toolbar button {
-    border: none !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
+/* 3. Forzar que los rellenos de los iconos SVG pasen a blanco puro */
+html.dark .ql-toolbar button fill,
+html.dark .ql-toolbar button .ql-fill,
+html.dark .ql-toolbar button [class*="fill"] {
+    fill: rgb(252, 248, 248) !important;
 }
 
-/* 4. Cambiar el color de fondo cuando pasas el mouse por encima (Hover) */
-html.dark trix-toolbar button:hover,
-html.dark trix-toolbar button.trix-active {
+/* 4. Cambiar el color de fondo cuando pasas el cursor por encima (Hover) */
+html.dark .ql-toolbar button:hover,
+html.dark .ql-toolbar button.ql-active {
     background-color: rgb(55, 22, 23) !important; /* Tu rojo sutil para indicar selección */
+}
+
+/* Cambiar los iconos también cuando el botón está activo o en hover */
+html.dark .ql-toolbar button:hover .ql-stroke,
+html.dark .ql-toolbar button.ql-active .ql-stroke {
+    stroke: #ffffff !important;
 }

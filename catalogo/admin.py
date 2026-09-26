@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django import forms
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django_quill.widgets import QuillWidget
 from django_quill.forms import QuillFormField
@@ -132,6 +133,11 @@ class EditorialAdmin(ModelAdmin):
 class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
     form = LibroAdminForm
 
+    def get_view_on_site_url(self, obj=None):
+        if obj is None or not obj.activo:
+            return None
+        return reverse('catalogo:detalle_libro', args=[obj.pk])
+
     def save_model(self, request, obj, form, change):
         portada_precargada = request.POST.get('portada_precargada', '').strip()
         
@@ -144,11 +150,11 @@ class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
     # Columnas visibles en la lista de libros
     list_display = [
         'titulo', 'get_autores', 'categoria',
-        'anio_publicacion', 'cantidad_ejemplares', 'activo'
+        'publicacion', 'cantidad_ejemplares', 'activo'
     ]
 
     # Filtros en la barra lateral derecha
-    list_filter = ['categoria', 'activo', 'anio_publicacion']
+    list_filter = ['categoria', 'activo', 'publicacion']
 
     # Búsqueda por estos campos
     search_fields = ['titulo', 'autores__nombre', 'isbn']
@@ -162,10 +168,10 @@ class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
             'fields': ('titulo', 'autores', 'categoria', 'portada', 'contraportada')
         }),
         ('Detalles de publicación', {
-            'fields': ('isbn', 'editoriales', 'anio_publicacion', 'descripcion')
+            'fields': ('isbn', 'editoriales', 'publicacion', 'descripcion')
         }),
-        ('Información física', {
-            'fields': ('ubicacion_fisica', 'cantidad_ejemplares')
+        ('Información topográfica y física', {
+            'fields': ('topografica', 'ubicacion_fisica', 'cantidad_ejemplares')
         }),
         ('Estado', {
             'fields': ('activo',)

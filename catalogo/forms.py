@@ -8,7 +8,7 @@ class LibroForm(forms.ModelForm):
         model  = Libro
         fields = [
             'titulo', 'autores', 'categoria', 'isbn',
-            'editoriales', 'anio_publicacion', 'descripcion',
+            'editoriales', 'publicacion', 'descripcion',
             'ubicacion_fisica', 'cantidad_ejemplares',
             'portada', 'contraportada', 'activo'
         ]
@@ -31,7 +31,7 @@ class LibroForm(forms.ModelForm):
                 'class': 'form-select',
                 'placeholder': 'Ej: Alfaguara'
             }),
-            'anio_publicacion': forms.NumberInput(attrs={
+            'publicacion': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ej: 2001',
                 'min': 1800,
@@ -42,9 +42,13 @@ class LibroForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'Breve descripción del libro...'
             }),
+            'topografica': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ej: 821.134.2(861)-31"19" G216c 1985'
+            }),
             'ubicacion_fisica': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Ej: Estante B - Fila 3'
+                'placeholder': 'Ej: Piso 2 - Estante B - Fila 3'
             }),
             'cantidad_ejemplares': forms.NumberInput(attrs={
                 'class': 'form-control',
@@ -68,8 +72,9 @@ class LibroForm(forms.ModelForm):
             'categoria'          : 'Categoría',
             'isbn'               : 'ISBN',
             'editoriales'        : 'Editoriales',
-            'anio_publicacion'   : 'Año de publicación',
+            'publicacion'        : 'Publicación',
             'descripcion'        : 'Descripción',
+            'topografica'        : 'Información topográfica',
             'ubicacion_fisica'   : 'Ubicación física',
             'cantidad_ejemplares': 'Cantidad de ejemplares',
             'portada'            : 'Imagen de portada',

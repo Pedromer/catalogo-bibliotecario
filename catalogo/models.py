@@ -4,28 +4,6 @@ from django.db import models
 from django_quill.fields import QuillField
 from django_quill.quill import Quill
 
-
-def normalizar_urls_youtube(html_text):
-    """
-    Detecta URLs de YouTube en etiquetas <iframe> y las convierte a formato embed limpio.
-    Soporta:
-    - https://www.youtube.com/watch?v=ID
-    - https://youtu.be/ID
-    - https://www.youtube.com/shorts/ID
-    - URLs con parámetros adicionales (?si=..., &t=...)
-    """
-    if not html_text:
-        return html_text
-
-    patron_youtube = r'(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})(?:[^\s"\'<>]*)*'
-
-    def reemplazar_url(match):
-        video_id = match.group(1)
-        return f'https://www.youtube.com/embed/{video_id}'
-
-    return re.sub(patron_youtube, reemplazar_url, str(html_text))
-
-
 class Autor(models.Model):
     nombre = models.CharField(max_length=200)
     pais = models.CharField(max_length=100, blank=True)
@@ -68,8 +46,9 @@ class Libro(models.Model):
     )
     isbn = models.CharField(max_length=20, unique=True, blank=True, null=True)
     editoriales = models.ManyToManyField('Editorial', blank=True)
-    anio_publicacion = models.IntegerField(null=True, blank=True)
+    publicacion = models.IntegerField(null=True, blank=True)
     descripcion = QuillField(blank=True, null=True)
+    topografica = models.CharField(max_length=100, blank=True)
     ubicacion_fisica = models.CharField(max_length=100, blank=True)
     cantidad_ejemplares = models.PositiveIntegerField(default=1)
     fecha_ingreso = models.DateField(auto_now_add=True)
@@ -82,9 +61,6 @@ class Libro(models.Model):
                 if hasattr(self.descripcion, 'html') and hasattr(self.descripcion, 'delta'):
                     html_actual = str(self.descripcion.html or '')
                     delta_actual = self.descripcion.delta
-                    
-                    html_normalizado = normalizar_urls_youtube(html_actual)
-                    delta_normalizado = normalizar_urls_youtube(str(delta_actual))
 
                     # Si hubo cambios en las URLs, reasignamos el objeto Quill completo
                     if html_normalizado != html_actual or delta_normalizado != str(delta_actual):
@@ -99,7 +75,6 @@ class Libro(models.Model):
                     texto_limpio = self.descripcion.strip()
                     if texto_limpio.startswith('{') and '"html"' in texto_limpio:
                         try:
-                            # Parseamos el JSON para normalizar su contenido interno
                             data = json.loads(texto_limpio)
                             if 'html' in data:
                                 data['html'] = normalizar_urls_youtube(data['html'])
