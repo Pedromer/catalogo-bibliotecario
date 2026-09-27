@@ -5,7 +5,7 @@ from django_quill.fields import QuillField
 from django_quill.quill import Quill
 
 class Autor(models.Model):
-    nombre = models.CharField(max_length=200)
+    nombre = models.CharField(max_length=200, unique=True)
     pais = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
@@ -16,7 +16,7 @@ class Autor(models.Model):
 
 
 class Categoria(models.Model):
-    nombre = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.nombre
@@ -26,7 +26,7 @@ class Categoria(models.Model):
 
 
 class Editorial(models.Model):
-    nombre = models.CharField(max_length=100)
+    nombre = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.nombre
