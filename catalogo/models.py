@@ -25,6 +25,28 @@ class Categoria(models.Model):
         verbose_name_plural = "Categorías"
 
 
+class Coleccion(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        verbose_name = "Colección"
+        verbose_name_plural = "Colecciones"
+
+
+class Etiqueta(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.nombre
+
+    class Meta:
+        verbose_name = "Etiqueta"
+        verbose_name_plural = "Etiquetas"
+
+
 class Editorial(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
 
@@ -43,6 +65,13 @@ class Libro(models.Model):
     categoria = models.ForeignKey(
         Categoria, on_delete=models.SET_NULL,
         null=True, blank=True
+    )
+    coleccion = models.ForeignKey(
+        Coleccion, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    etiquetas = models.ManyToManyField(
+        Etiqueta, blank=True, related_name='libros'
     )
     isbn = models.CharField(max_length=20, unique=True, blank=True, null=True)
     editoriales = models.ManyToManyField('Editorial', blank=True)

@@ -24,7 +24,9 @@
     function isQuickAddField(select) {
         return Boolean(
             select &&
-            (select.name.includes('autor') || select.name.includes('editorial'))
+            ['autor', 'editorial', 'categoria', 'coleccion'].some(function (name) {
+                return select.name.includes(name);
+            })
         );
     }
 
@@ -39,10 +41,6 @@
 
         const cleanTerm = term || currentTerm;
 
-        // Detectar si el campo abierto es 'autores' o 'editoriales'
-        let modelName = 'autor';
-        let selectName = 'autores';
-
         const activeSelect = getOpenSelect();
         if (!isQuickAddField(activeSelect)) {
             return;
@@ -50,10 +48,16 @@
 
         popupOpening = true;
 
-        if (activeSelect.name.includes('editorial')) {
-            modelName = 'editorial';
-            selectName = 'editoriales';
-        }
+        const quickAddConfig = [
+            { field: 'autor', model: 'autor', select: 'autores' },
+            { field: 'editorial', model: 'editorial', select: 'editoriales' },
+            { field: 'categoria', model: 'categoria', select: 'categoria' },
+            { field: 'coleccion', model: 'coleccion', select: 'coleccion' }
+        ].find(function (item) {
+            return activeSelect.name.includes(item.field);
+        });
+        const modelName = quickAddConfig.model;
+        const selectName = quickAddConfig.select;
 
         const adminPrefix = window.location.pathname.includes('/catalogo/') 
             ? window.location.pathname.split('/catalogo/')[0] 

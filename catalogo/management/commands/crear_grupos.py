@@ -3,14 +3,14 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from catalogo.models import Libro, Autor, Categoria, Editorial
+from catalogo.models import Libro, Autor, Categoria, Coleccion, Etiqueta, Editorial
 
 
 class Command(BaseCommand):
     help = 'Crea y sincroniza los grupos "Administrador de biblioteca" y "Auditor".'
 
     def handle(self, *args, **options):
-        modelos = [Libro, Autor, Categoria, Editorial]
+        modelos = [Libro, Autor, Categoria, Coleccion, Etiqueta, Editorial]
         content_types = [ContentType.objects.get_for_model(m) for m in modelos]
 
         # -------------------------------------------------------------

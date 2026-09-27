@@ -79,13 +79,17 @@
                     {{ libro.titulo }}
                 </h1>
 
-                <p style="color:var(--color-muted); font-size:1rem; margin-bottom:1.25rem;">
-                    {% for autor in libro.autores.all %}
-                        {{ autor.nombre }};{% if not forloop.last %} {% endif %}
-                    {% empty %}
-                        Autor desconocido
-                    {% endfor %}
-                </p>
+                <div class="button">
+                    <p style="color:var(--color-muted); font-size:1rem; margin-bottom:1.25rem;">
+                        {% for autor in libro.autores.all %}
+                            <a href="{% url 'catalogo:catalogo_publico' %}?q={{ autor.nombre|urlencode }}" 
+                            style="color: inherit; text-decoration: underline; cursor: pointer;">
+                                {{ autor.nombre }}</a>{% if not forloop.last %} - {% endif %}
+                        {% empty %}
+                            Autor desconocido
+                        {% endfor %}
+                    </p>
+                </div>
 
                 {% if libro.categoria %}
                 <span class="badge-categoria mb-3 d-inline-block">{{ libro.categoria.nombre }}</span>
@@ -101,6 +105,11 @@
                     </dd>
                     {% endif %}
 
+                    {% if libro.coleccion %}
+                    <dt class="col-sm-4">Colección</dt>
+                    <dd class="col-sm-8">{{ libro.coleccion.nombre }}</dd>
+                    {% endif %}
+
                     {% if libro.anio_publicacion %}
                     <dt class="col-sm-4">Año</dt>
                     <dd class="col-sm-8">{{ libro.anio_publicacion }}</dd>
@@ -114,6 +123,17 @@
                     {% if libro.ubicacion_fisica %}
                     <dt class="col-sm-4">Ubicación</dt>
                     <dd class="col-sm-8">{{ libro.ubicacion_fisica }}</dd>
+                    {% endif %}
+
+                    {% if libro.etiquetas.all %}
+                    <dt class="col-sm-4">Etiquetas</dt>
+                    <dd class="col-sm-8 d-flex flex-wrap gap-1">
+                        {% for etiqueta in libro.etiquetas.all %}
+                        <a href="{% url 'catalogo:catalogo_publico' %}?q={{ etiqueta.nombre|urlencode }}" class="text-decoration-none">
+                            <span class="badge bg-secondary">{{ etiqueta.nombre }}</span>
+                        </a>
+                        {% endfor %}
+                    </dd>
                     {% endif %}
 
                     <dt class="col-sm-4">Ejemplares</dt>

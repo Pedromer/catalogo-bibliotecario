@@ -4,7 +4,21 @@
 {% load import_export_tags %}
 {% load static %}
 
-{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "import_export/import.css" %}" />{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "import_export/import.css" %}" />
+<style>
+  table.import-preview tr:not(.update) td ins {
+    background-color: transparent !important;
+  }
+
+  table.import-preview tr.update td ins {
+    background-color: #bbf7d0 !important;
+  }
+
+  html[data-theme="dark"] table.import-preview tr.update td ins {
+    background-color: #14532d !important;
+  }
+</style>
+{% endblock %}
 
 {% block extrahead %}{{ block.super }}
   <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>

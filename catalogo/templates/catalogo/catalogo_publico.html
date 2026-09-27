@@ -22,7 +22,7 @@
         </button>
 
         <span style="font-size: .9rem; color: var(--color-muted);">
-            {% if query or categoria_id %}
+            {% if query or categoria_id or coleccion_id %}
                 {{ libros.count }} resultado{{ libros.count|pluralize }} encontrado{{ libros.count|pluralize }}
             {% else %}
                 {{ libros.count }} libro{{ libros.count|pluralize }} en el catálogo
@@ -43,13 +43,13 @@
 
         <div class="btn-group" role="group" aria-label="Libros por página">
             <a
-                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=20"
+                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if coleccion_id %}coleccion={{ coleccion_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=20"
                 class="btn btn-outline-secondary btn-sm {% if page_size == '20' %}active{% endif %}"
             >
                 20
             </a>
             <a
-                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=40"
+                href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if coleccion_id %}coleccion={{ coleccion_id }}&{% endif %}{% if orden %}orden={{ orden|urlencode }}&{% endif %}por_pagina=40"
                 class="btn btn-outline-secondary btn-sm {% if page_size == '40' %}active{% endif %}"
             >
                 40
@@ -94,6 +94,18 @@
             </div>
 
             <div class="mb-3">
+                <label class="form-label fw-semibold mb-1">COLECCIÓN</label>
+                <select name="coleccion" class="form-select">
+                    <option value="">Todas las colecciones</option>
+                    {% for coleccion in colecciones %}
+                    <option value="{{ coleccion.id }}" {% if coleccion_id == coleccion.id|stringformat:"s" %}selected{% endif %}>
+                        {{ coleccion.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label fw-semibold mb-1">ORDENAR POR</label>
                 <select name="orden" class="form-select">
                     <option value="">Predeterminado</option>
@@ -108,7 +120,7 @@
 
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-main">Buscar</button>
-                {% if query or categoria_id or orden %}
+                {% if query or categoria_id or coleccion_id or orden %}
                 <a href="{% url 'catalogo:catalogo_publico' %}" class="btn btn-outline-secondary">Limpiar</a>
                 {% endif %}
             </div>
@@ -185,6 +197,19 @@
                                         <strong class="text-dark">Editorial:</strong>
                                         {% for ed in libro.editoriales.all %}
                                             {{ ed.nombre }}{% if not forloop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                {% endif %}
+                                {% if libro.coleccion %}
+                                    <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
+                                        <strong class="text-dark">Colección:</strong> {{ libro.coleccion.nombre }}
+                                    </p>
+                                {% endif %}
+                                {% if libro.etiquetas.all %}
+                                    <p class="mb-1 text-secondary" style="font-size: 0.88rem;">
+                                        <strong class="text-dark">Etiquetas:</strong>
+                                        {% for etiqueta in libro.etiquetas.all %}
+                                            {{ etiqueta.nombre }}{% if not forloop.last %}, {% endif %}
                                         {% endfor %}
                                     </p>
                                 {% endif %}

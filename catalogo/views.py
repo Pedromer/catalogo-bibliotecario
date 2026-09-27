@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q, Min
 from django.core.paginator import Paginator
-from .models import Libro, Categoria
+from .models import Libro, Categoria, Coleccion
 from .forms import LibroForm
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -27,12 +27,16 @@ def catalogo_publico(request):
     Soporta búsqueda por texto, filtro por categoría y ordenamiento.
     """
     # 1. QuerySets iniciales
-    libros = Libro.objects.filter(activo=True).prefetch_related('autores')
+    libros = Libro.objects.filter(activo=True).select_related(
+        'coleccion'
+    ).prefetch_related('autores', 'etiquetas')
     categorias = Categoria.objects.all().order_by('nombre')
+    colecciones = Coleccion.objects.all().order_by('nombre')
 
     # 2. Obtener todos los parámetros GET
     query = request.GET.get('q', '').strip()
     categoria_id = request.GET.get('categoria', '')
+    coleccion_id = request.GET.get('coleccion', '')
     orden = request.GET.get('orden', 'titulo')
 
     # 3. Búsqueda por texto
@@ -40,12 +44,16 @@ def catalogo_publico(request):
         libros = libros.filter(
             Q(titulo__icontains=query) |
             Q(autores__nombre__icontains=query) |
-            Q(isbn__icontains=query)
+            Q(isbn__icontains=query) |
+            Q(etiquetas__nombre__icontains=query)
         ).distinct()
 
     # 4. Filtro por categoría
     if categoria_id:
         libros = libros.filter(categoria__id=categoria_id)
+
+    if coleccion_id:
+        libros = libros.filter(coleccion__id=coleccion_id)
 
     # 5. Filtro de orden
     if orden in ['titulo', '-titulo', 'publicacion', '-publicacion', 'autor', '-autor']:
@@ -78,9 +86,11 @@ def catalogo_publico(request):
         'page_size': page_size,
         'pagination_query': pagination_query,
         'categorias'  : categorias,
+        'colecciones' : colecciones,
         'query'       : query,
         'orden'       : orden,
         'categoria_id': categoria_id,
+        'coleccion_id': coleccion_id,
     })
 
 def detalle_libro(request, pk):

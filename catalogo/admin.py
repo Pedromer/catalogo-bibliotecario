@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django import forms
+from django.contrib.admin.widgets import AutocompleteSelectMultiple
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django_quill.widgets import QuillWidget
@@ -7,8 +8,9 @@ from django_quill.forms import QuillFormField
 from unfold.admin import ModelAdmin, TabularInline
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import Libro, Autor, Categoria, Editorial
+from .models import Libro, Autor, Categoria, Coleccion, Etiqueta, Editorial
 from .admin_import_export import LibroImportExportAdmin
+from .forms import EtiquetaInputField, EtiquetasInputMixin
 
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm
 from unfold.forms import UserCreationForm as UnfoldUserCreationForm
@@ -85,13 +87,56 @@ class FixedQuillWidget(QuillWidget):
         return mark_safe(html + custom_css)
 
 
+class EtiquetaAutocompleteSelectMultiple(AutocompleteSelectMultiple):
+    def build_attrs(self, base_attrs, extra_attrs=None):
+        attrs = super().build_attrs(base_attrs, extra_attrs=extra_attrs)
+        attrs['data-tags'] = 'true'
+        return attrs
+
+    def optgroups(self, name, value, attr=None):
+        options = []
+
+        for index, selected_value in enumerate(value or []):
+            raw_value = getattr(selected_value, 'pk', selected_value)
+            raw_value = str(raw_value)
+            etiqueta = (
+                Etiqueta.objects.filter(pk=raw_value).first()
+                if raw_value.isdecimal()
+                else None
+            )
+            label = etiqueta.nombre if etiqueta else raw_value
+            options.append(
+                self.create_option(
+                    name, raw_value, label, True, index, attrs=attr
+                )
+            )
+
+        return [(None, options, 0)]
+
+
 # --- Formulario personalizado para aplicar el widget a 'descripcion' ---
-class LibroAdminForm(forms.ModelForm):
+class LibroAdminForm(EtiquetasInputMixin, forms.ModelForm):
     descripcion = QuillFormField(widget=FixedQuillWidget(), required=False)
+    etiquetas = EtiquetaInputField(
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'form-select js-etiquetas'}),
+        label='Etiquetas',
+    )
 
     class Meta:
         model = Libro
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        autores_widget = self.fields['autores'].widget
+        native_widget = getattr(autores_widget, 'widget', autores_widget)
+        etiqueta_field = self.fields['etiquetas']
+        etiqueta_field.widget = EtiquetaAutocompleteSelectMultiple(
+            Libro._meta.get_field('etiquetas'),
+            admin.site,
+            attrs={'class': native_widget.attrs.get('class', '')},
+        )
 
 
 # --- ModelAdmins ---
@@ -112,6 +157,33 @@ class AutorAdmin(ModelAdmin):
 @admin.register(Categoria)
 class CategoriaAdmin(ModelAdmin):
     list_display = ['nombre']
+    search_fields = ['nombre']
+    ordering = ['nombre']
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if 'nombre' in request.GET:
+            initial['nombre'] = request.GET['nombre']
+        return initial
+
+
+@admin.register(Coleccion)
+class ColeccionAdmin(ModelAdmin):
+    list_display = ['nombre']
+    search_fields = ['nombre']
+    ordering = ['nombre']
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if 'nombre' in request.GET:
+            initial['nombre'] = request.GET['nombre']
+        return initial
+
+
+@admin.register(Etiqueta)
+class EtiquetaAdmin(ModelAdmin):
+    list_display = ['nombre']
+    search_fields = ['nombre']
     ordering = ['nombre']
 
 
@@ -149,15 +221,18 @@ class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
 
     # Columnas visibles en la lista de libros
     list_display = [
-        'titulo', 'get_autores', 'categoria',
+        'titulo', 'get_autores', 'categoria', 'coleccion',
         'publicacion', 'cantidad_ejemplares', 'activo'
     ]
 
     # Filtros en la barra lateral derecha
-    list_filter = ['categoria', 'activo', 'publicacion']
+    list_filter = ['activo']
 
     # Búsqueda por estos campos
-    search_fields = ['titulo', 'autores__nombre', 'isbn']
+    search_fields = [
+        'titulo', 'autores__nombre', 'isbn', 'editoriales__nombre',
+        'coleccion__nombre', 'etiquetas__nombre'
+    ]
 
     # Hacer editable el campo activo directo desde la lista
     list_editable = ['activo']
@@ -168,7 +243,10 @@ class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
             'fields': ('titulo', 'autores', 'categoria', 'portada', 'contraportada')
         }),
         ('Detalles de publicación', {
-            'fields': ('isbn', 'editoriales', 'publicacion', 'descripcion')
+            'fields': (
+                'isbn', 'editoriales','coleccion', 'publicacion',
+                'etiquetas', 'descripcion'
+            )
         }),
         ('Información topográfica y física', {
             'fields': ('topografica', 'ubicacion_fisica', 'cantidad_ejemplares')
@@ -179,7 +257,9 @@ class LibroAdmin(LibroImportExportAdmin, ModelAdmin):
     )
 
     # Autocompletado con "chips" para autores y editoriales
-    autocomplete_fields = ['autores', 'editoriales']
+    autocomplete_fields = [
+        'autores', 'editoriales', 'categoria', 'coleccion', 'etiquetas'
+    ]
 
     # Método auxiliar para mostrar autores en la lista
     def get_autores(self, obj):
@@ -223,11 +303,11 @@ class CustomUserCreationForm(UnfoldUserCreationForm):
         )
 
 
-# 2. Desregistrar el User original
+# Desregistrar el User original
 admin.site.unregister(User)
 
 
-# 3. Registrar nuestro UserAdmin personalizado
+# Registrar nuestro UserAdmin personalizado
 @admin.register(User)
 class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
     # Formularios de Unfold
