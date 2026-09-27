@@ -25,20 +25,17 @@ def _normalize_text(value):
 
     return text
 
+
 def _normalize_author_name(value):
     """
     Normaliza el nombre de un autor.
 
     Formato esperado:
-
         Garcia Marquez, Gabriel
 
     Si falta el espacio después de la coma:
-
         Garcia Marquez,Gabriel
-
     se convierte en:
-
         Garcia Marquez, Gabriel
 
     La coma NO se utiliza como separador de autores.
@@ -53,13 +50,9 @@ def _normalize_author_name(value):
     text = re.sub(r'\s+', ' ', text)
 
     # Asegurar exactamente un espacio después de la coma.
-    # Ejemplo:
-    # "Garcia Marquez,Gabriel" -> "Garcia Marquez, Gabriel"
-    # "Garcia Marquez,   Gabriel" -> "Garcia Marquez, Gabriel"
     text = re.sub(r',\s*', ', ', text)
 
     return text
-
 
 
 def _slugify(value):
@@ -131,20 +124,14 @@ def _convert_drive_url(url):
     if 'drive.google.com' not in url_str:
         return url_str
 
-    # Formato estándar:
-    # https://drive.google.com/file/d/ID/...
     match = re.search(r'/d/([a-zA-Z0-9_-]+)', url_str)
-
     if match:
         return (
             f"https://drive.google.com/uc?"
             f"export=download&id={match.group(1)}"
         )
 
-    # Formato alternativo:
-    # https://drive.google.com/...?...&id=ID
     match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url_str)
-
     if match:
         return (
             f"https://drive.google.com/uc?"
@@ -162,10 +149,15 @@ class GetOrCreateForeignKeyWidget(ForeignKeyWidget):
         if not value:
             return None
 
-        obj, _ = self.model.objects.get_or_create(
-            **{f"{self.field}__iexact": value},
-            defaults={self.field: value},
-        )
+        # Usar .filter().first() en vez de get_or_create para evitar MultipleObjectsReturned si hay duplicados
+        obj = self.model.objects.filter(
+            **{f"{self.field}__iexact": value}
+        ).first()
+
+        if not obj:
+            obj = self.model.objects.create(
+                **{self.field: value}
+            )
 
         return obj
 
@@ -176,17 +168,7 @@ class GetOrCreateManyToManyWidget(ManyToManyWidget):
 
     IMPORTANTE:
     El separador entre elementos es ';'.
-
     Esto permite que los nombres puedan contener comas.
-
-    Ejemplo:
-
-        Cervantes, Miguel de;Borges, Jorge Luis
-
-    se convierte en:
-
-        - Cervantes, Miguel de
-        - Borges, Jorge Luis
     """
 
     def __init__(
@@ -231,10 +213,15 @@ class GetOrCreateManyToManyWidget(ManyToManyWidget):
 
             seen.add(val)
 
-            obj, _ = self.model.objects.get_or_create(
-                **{f"{self.field}__iexact": val},
-                defaults={self.field: val},
-            )
+            # Usar .filter().first() en vez de get_or_create para evitar MultipleObjectsReturned
+            obj = self.model.objects.filter(
+                **{f"{self.field}__iexact": val}
+            ).first()
+
+            if not obj:
+                obj = self.model.objects.create(
+                    **{self.field: val}
+                )
 
             instances.append(obj)
 
@@ -259,7 +246,6 @@ class LibroResource(resources.ModelResource):
             normalizer=_normalize_author_name,
         ),
     )
-
 
     categoria = fields.Field(
         column_name='Categoria',
@@ -386,29 +372,21 @@ class LibroResource(resources.ModelResource):
         )
 
         # 1. Procesar Descripción para Quill
-
         for col_name in [
             'Descripcion',
             'descripcion',
             'DESCRIPCION'
         ]:
-
             if col_name in row and row[col_name]:
-
                 val = _normalize_text(
                     row[col_name]
                 )
 
                 if val:
-
-                    # Si no viene con formato JSON de Quill,
-                    # lo estructuramos.
-
                     if not (
                         val.startswith('{')
                         and '"html"' in val
                     ):
-
                         payload = {
                             "html": f"<p>{val}</p>",
                             "delta": json.dumps(
@@ -421,18 +399,14 @@ class LibroResource(resources.ModelResource):
                                 }
                             )
                         }
-
                         row[col_name] = json.dumps(
                             payload
                         )
-
                     else:
                         row[col_name] = val
-
                 break
 
         # 2. Convertir enlaces de Google Drive
-
         row['Portada_URL'] = _convert_drive_url(
             row.get('Portada_URL')
         )
@@ -452,43 +426,19 @@ class LibroResource(resources.ModelResource):
             )
 
     def _get_author_names(self, row):
-        """
-        Obtiene los nombres de autores de una fila.
-
-        IMPORTANTE:
-        El separador es ';', NO ','.
-
-        Esto permite nombres como:
-
-            Cervantes, Miguel de
-
-        y múltiples autores como:
-
-            Cervantes, Miguel de;Borges, Jorge Luis
-        """
-
         values = row.get('Autores')
 
         if values is None:
             return []
 
-        if isinstance(
-            values,
-            (list, tuple, set)
-        ):
+        if isinstance(values, (list, tuple, set)):
             items = values
-
         else:
-            # SOLO ';' separa autores.
             items = str(values).split(';')
 
         names = []
-
         for item in items:
-
             name = _normalize_author_name(item)
-
-
             if name:
                 names.append(name)
 
@@ -511,7 +461,6 @@ class LibroResource(resources.ModelResource):
         )
 
         for autor in autores:
-
             queryset = queryset.filter(
                 autores__nombre__iexact=autor
             )
@@ -528,10 +477,8 @@ class LibroResource(resources.ModelResource):
         )
 
         if duplicate is not None:
-
             self._current_row_is_duplicate = True
             self._current_row_has_new_data = False
-
             return duplicate, False
 
         self._current_row_is_duplicate = False
@@ -568,7 +515,6 @@ class LibroResource(resources.ModelResource):
             changed = True
 
         if instance.categoria_id is None:
-
             categoria_value = self.fields[
                 'categoria'
             ].clean(
@@ -588,17 +534,13 @@ class LibroResource(resources.ModelResource):
         )
 
         if autores_value:
-
             for autor in autores_value:
-
                 if not instance.autores.filter(
                     pk=autor.pk
                 ).exists():
-
                     instance.autores.add(
                         autor
                     )
-
                     changed = True
 
         editorial_value = self.fields[
@@ -609,21 +551,16 @@ class LibroResource(resources.ModelResource):
         )
 
         if editorial_value:
-
             for editorial in editorial_value:
-
                 if not instance.editoriales.filter(
                     pk=editorial.pk
                 ).exists():
-
                     instance.editoriales.add(
                         editorial
                     )
-
                     changed = True
 
         if not instance.publicacion:
-
             publicacion_value = self.fields[
                 'publicacion'
             ].clean(
@@ -654,12 +591,10 @@ class LibroResource(resources.ModelResource):
             None,
             ''
         ):
-
             try:
                 cantidad_num = int(
                     float(cantidad_value)
                 )
-
             except (
                 TypeError,
                 ValueError
@@ -693,9 +628,7 @@ class LibroResource(resources.ModelResource):
         row,
         **kwargs
     ):
-
         if self._current_row_is_duplicate:
-
             self._current_row_has_new_data = (
                 self._merge_duplicate_data(
                     instance,
@@ -721,12 +654,9 @@ class LibroResource(resources.ModelResource):
         row_result,
         **kwargs
     ):
-
         if self._current_row_is_duplicate:
-
             if self._current_row_has_new_data:
                 self._duplicate_updated += 1
-
             else:
                 self._duplicate_skipped += 1
 
@@ -742,7 +672,6 @@ class LibroResource(resources.ModelResource):
         result,
         **kwargs
     ):
-
         result.totals[
             'duplicate_updated'
         ] = self._duplicate_updated
@@ -769,7 +698,6 @@ class LibroResource(resources.ModelResource):
         row,
         import_validation_errors=None
     ):
-
         cols = [
             'Titulo',
             'Autores',
@@ -787,18 +715,14 @@ class LibroResource(resources.ModelResource):
         any_value = False
 
         for c in cols:
-
             v = row.get(c)
-
             if v is None:
                 continue
-
             if (
                 isinstance(v, str)
                 and v.strip() == ''
             ):
                 continue
-
             any_value = True
             break
 
@@ -826,7 +750,6 @@ class LibroResource(resources.ModelResource):
         is_m2m=False,
         **kwargs
     ):
-
         if (
             not field.attribute
             or field.attribute not in (
@@ -853,25 +776,20 @@ class LibroResource(resources.ModelResource):
         content = None
 
         if callable(cleaner):
-
             content = cleaner(
                 row.get(col),
                 row=row
             )
-
         else:
-
             try:
                 content = field.clean(
                     row,
                     **kwargs
                 )
-
             except Exception:
                 content = None
 
         if content:
-
             name = getattr(
                 content,
                 'name',
@@ -896,7 +814,6 @@ class LibroResource(resources.ModelResource):
         row,
         **kwargs
     ):
-
         if kwargs.get('dry_run'):
             return
 
@@ -906,7 +823,6 @@ class LibroResource(resources.ModelResource):
             'portada',
             'contraportada'
         ):
-
             tmp = getattr(
                 instance,
                 f"_tmp_{attr}",
@@ -919,7 +835,6 @@ class LibroResource(resources.ModelResource):
             name, content = tmp
 
             try:
-
                 getattr(
                     instance,
                     attr
@@ -928,20 +843,15 @@ class LibroResource(resources.ModelResource):
                     content,
                     save=False
                 )
-
                 saved = True
-
             except Exception:
                 pass
-
             finally:
-
                 try:
                     delattr(
                         instance,
                         f"_tmp_{attr}"
                     )
-
                 except Exception:
                     pass
 
@@ -953,7 +863,6 @@ class LibroResource(resources.ModelResource):
         value,
         row=None
     ):
-
         if value in (
             None,
             ''
@@ -962,7 +871,6 @@ class LibroResource(resources.ModelResource):
 
         try:
             year = int(float(value))
-
         except (
             TypeError,
             ValueError
@@ -971,7 +879,6 @@ class LibroResource(resources.ModelResource):
                 'Publicacion no es un número válido'
             )
 
-        # Permitimos años a.C.
         if year < -4000 or year > 2100:
             raise ValueError(
                 'Publicacion debe estar entre -4000 y 2100'
@@ -984,7 +891,6 @@ class LibroResource(resources.ModelResource):
         value,
         row=None
     ):
-
         if value in (
             None,
             ''
@@ -993,7 +899,6 @@ class LibroResource(resources.ModelResource):
 
         try:
             cantidad = int(float(value))
-
         except (
             TypeError,
             ValueError
@@ -1014,9 +919,7 @@ class LibroResource(resources.ModelResource):
         value,
         row=None
     ):
-
         url = _normalize_text(value)
-
         if not url:
             return None
 
@@ -1042,9 +945,7 @@ class LibroResource(resources.ModelResource):
         value,
         row=None
     ):
-
         url = _normalize_text(value)
-
         if not url:
             return None
 
@@ -1066,14 +967,6 @@ class LibroResource(resources.ModelResource):
         return content
 
     def dehydrate_autores(self, libro):
-        """
-        Exporta múltiples autores separados por ';'.
-
-        Ejemplo:
-
-            Cervantes, Miguel de; Borges, Jorge Luis
-        """
-
         return '; '.join(
             autor.nombre
             for autor in libro.autores.all()
@@ -1087,10 +980,6 @@ class LibroResource(resources.ModelResource):
         )
 
     def dehydrate_editorial(self, libro):
-        """
-        Exporta múltiples editoriales separadas por ';'.
-        """
-
         return '; '.join(
             editorial.nombre
             for editorial in libro.editoriales.all()
@@ -1100,7 +989,6 @@ class LibroResource(resources.ModelResource):
         return libro.publicacion or ''
 
     def dehydrate_descripcion(self, libro):
-
         if libro.descripcion:
             return getattr(
                 libro.descripcion,
@@ -1120,7 +1008,6 @@ class LibroResource(resources.ModelResource):
         self,
         relative_url
     ):
-
         if not relative_url:
             return ''
 
@@ -1147,7 +1034,6 @@ class LibroResource(resources.ModelResource):
         return relative_url
 
     def dehydrate_portada_url(self, libro):
-
         if not libro.portada:
             return ''
 
@@ -1156,7 +1042,6 @@ class LibroResource(resources.ModelResource):
         )
 
     def dehydrate_contraportada_url(self, libro):
-
         if not libro.contraportada:
             return ''
 
