@@ -207,7 +207,23 @@ def _download_image_content(url, filename_prefix, title=None):
     return ContentFile(content, name=filename)
 
 
+# Cabeceras que simulan un navegador estándar para evitar bloqueos por IP de datacenter
+DEFAULT_HEADERS = {
+    'User-Agent': (
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/126.0.0.0 Safari/537.36'
+    ),
+    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+    'Accept-Language': 'es-ES,es;q=0.9,en;q=0.8',
+}
+
+
 def _convert_drive_url(url):
+    """
+    Extrae el ID de Drive y genera una URL de renderizado directo (thumbnail en alta resolución).
+    Este endpoint no dispara la advertencia de descarga/antivirus de Google en Vercel.
+    """
     if not url:
         return url
 
@@ -216,27 +232,99 @@ def _convert_drive_url(url):
     if 'drive.google.com' not in url_str:
         return url_str
 
-    # Formato estándar:
-    # https://drive.google.com/file/d/ID/...
+    file_id = None
+
+    # Formato estándar: /file/d/ID/...
     match = re.search(r'/d/([a-zA-Z0-9_-]+)', url_str)
-
     if match:
-        return (
-            f"https://drive.google.com/uc?"
-            f"export=download&id={match.group(1)}"
-        )
+        file_id = match.group(1)
+    else:
+        # Formato query param: ?id=ID o &id=ID
+        match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url_str)
+        if match:
+            file_id = match.group(1)
 
-    # Formato alternativo:
-    # https://drive.google.com/...?...&id=ID
-    match = re.search(r'[?&]id=([a-zA-Z0-9_-]+)', url_str)
-
-    if match:
-        return (
-            f"https://drive.google.com/uc?"
-            f"export=download&id={match.group(1)}"
-        )
+    if file_id:
+        # sz=w2000 devuelve la imagen original escalada hasta 2000px sin pasar por la pantalla de confirmación HTML
+        return f"https://drive.google.com/thumbnail?id={file_id}&sz=w2000"
 
     return url_str
+
+
+def _download_image_content(url, filename_prefix, title=None):
+    if not url:
+        return None
+
+    if isinstance(url, str):
+        url = url.strip()
+
+    if not url or not url.lower().startswith(('http://', 'https://')):
+        return None
+
+    session = requests.Session()
+
+    try:
+        # Realizamos la petición con headers y permitiendo redirecciones
+        response = session.get(url, headers=DEFAULT_HEADERS, timeout=12, allow_redirects=True)
+        response.raise_for_status()
+
+        # Si por alguna razón redirige a la pantalla de aviso de descarga directa de Drive
+        if 'drive.google.com' in response.url and 'text/html' in response.headers.get('Content-Type', ''):
+            # Intentar capturar token de confirmación de descarga si existiese
+            confirm_match = re.search(r'confirm=([0-9A-Za-z_]+)', response.text)
+            if confirm_match:
+                confirm_token = confirm_match.group(1)
+                response = session.get(
+                    f"{url}&confirm={confirm_token}",
+                    headers=DEFAULT_HEADERS,
+                    timeout=12,
+                    allow_redirects=True
+                )
+                response.raise_for_status()
+
+    except requests.RequestException as e:
+        print(f"[ERROR DESCARGA] Error conectando a {url}: {e}", flush=True)
+        return None
+
+    # Verificación estricta: si Google devolvió HTML (pantalla de error o login), descartamos
+    content_type = response.headers.get('Content-Type', '').lower()
+    if 'text/html' in content_type:
+        print(f"[ERROR DESCARGA] Google devolvió HTML en vez de archivo: {url}", flush=True)
+        return None
+
+    content_length = response.headers.get('Content-Length')
+    if content_length:
+        try:
+            if int(content_length) > MAX_IMAGE_SIZE_BYTES:
+                return None
+        except (ValueError, TypeError):
+            pass
+
+    content = response.content
+
+    if len(content) > MAX_IMAGE_SIZE_BYTES or len(content) == 0:
+        return None
+
+    try:
+        image = Image.open(BytesIO(content))
+        image.verify()
+        # Formato detectado por Pillow (JPEG, PNG, WEBP, etc.)
+        image_format = (image.format or 'JPEG').lower()
+        if image_format == 'jpeg':
+            suffix = '.jpg'
+        else:
+            suffix = f".{image_format}"
+    except Exception as e:
+        print(f"[ERROR PIL] Archivo recibido no es una imagen válida: {e}", flush=True)
+        return None
+
+    safe_title = _slugify(title)
+    timestamp = int(time.time() * 1000)
+    filename = f"{filename_prefix}_{safe_title}_{timestamp}{suffix}"
+
+    from django.core.files.base import ContentFile
+
+    return ContentFile(content, name=filename)
 
 
 class GetOrCreateForeignKeyWidget(ForeignKeyWidget):
